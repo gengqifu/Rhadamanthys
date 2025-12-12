@@ -6,7 +6,7 @@ CLI、预检与日志
 **so that** 工具可在离线环境可靠运行并易于诊断
 
 ## Status
-Complete
+In Progress
 
 ## Context
 - PRD：CLI 参数（路径、规则分组、out、format、log-interval-ms、verbose、debug、include/exclude），预检 Python/依赖/libclang/路径，退出码 0/1/2/3，日志中文且可配置频率。
@@ -18,11 +18,13 @@ Story Points: 3
 1. 测试任务
    - [x] 设计测试：参数解析（log-interval-ms/format/include/exclude）、预检失败场景（版本/依赖/libclang/路径）
    - [x] 编写测试断言：退出码 0/1/2/3、中文错误输出、日志频率配置
+   - [ ] 设计测试：启动时规则库更新流程的提示（开始/进度/完成），含有更新/无更新/失败场景
 2. 开发任务
    - [x] 实现 CLI 参数解析与预检（Python 2.7.18、依赖、libclang、路径）
    - [x] 日志封装：默认 1s，可调至 30ms（提示 I/O 开销）；模块阶段汇总
+   - [ ] 集成规则库更新检测与提示（开始/进度/完成），必要时先更新再扫描
 3. 验证
-   - [x] 运行测试，全部通过后标记完成
+   - [ ] 运行新增测试，确认更新提示流程通过后标记完成
 
 ## Constraints
 - 离线运行；macOS 环境。
