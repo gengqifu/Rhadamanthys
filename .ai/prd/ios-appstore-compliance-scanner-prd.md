@@ -1,0 +1,56 @@
+# iOS App Store 合规扫描器 PRD
+
+## 文档信息
+- 目标：扫描本地 iOS 客户端代码，按 App Store Review Guidelines 与 HIG 识别风险并生成中文报告（Excel）。
+- 范围：仅 iOS 客户端；Swift/Objective-C/SwiftPM/Podfile/Info.plist/Entitlements 等相关配置。
+- 版本基线：以苹果官方链接的当前版本为准（App Store Review Guidelines、HIG），需在规则库记录来源链接与发布日期。
+
+## 背景
+新上架 iOS 应用需符合 App Store 审核规则和 HIG。希望用离线工具自动扫描本地代码，发现潜在违规点，给出中文改进建议，并导出 Excel。
+
+## 目标与非目标
+- 目标：自动扫描可机检的风险，输出高置信问题与需人工复核项；生成 Excel 报告；提供清晰日志与错误提示。
+- 非目标：内容合法性深度审核（侵权/夸大宣传等）、UI 体验完整符合 HIG 的人工判断。
+
+## 规则基线
+- App Store Review Guidelines（官方链接）
+- Human Interface Guidelines（官方链接）
+- 规则库需机读：规则ID、标题、来源条款链接、适用范围、检测思路、风险等级、建议模板、是否需人工复核。
+
+## 功能需求
+1) 规则库
+   - YAML/JSON 存储，含版本/发布日期。
+   - 支持增量更新与规则分组（隐私、支付、登录、网络、私有 API、元数据等）。
+2) 扫描器
+   - Info.plist/Entitlements：权限文案、ATS、后台模式、Sign in with Apple、URL Schemes、导出合规标记。
+   - 代码：Swift/ObjC 静态扫描（libclang/SourceKitten 可选），检测 ATT/跟踪 SDK、IDFA 访问、StoreKit/IAP、外链支付/WebView 拦截、第三方支付 SDK、第三方登录 vs Apple 登录、私有 API/反射黑名单、明文 HTTP/ATS 例外、后台模式对应实现。
+   - 依赖：Podfile/Package.swift/SwiftPM，识别 SDK 类型（广告/支付/登录等）。
+   - 人工复核提示：UGC 审核流程、订阅条款展示、截图/描述合规等不可完全自动化项标记“需人工复核”。
+3) CLI
+   - 命令：`python cli.py scan <project_path> --out report.xlsx [--rules group1,group2] [--verbose] [--debug]`
+   - 离线运行；允许依赖 Homebrew 安装 clang/libclang、Python 包。
+   - 关键日志输出到终端，长耗时任务需持续打印进度；日志间隔可配置（默认较长，如 1s，可调低至 30ms 用于调试）。
+   - `--verbose` 输出详细扫描进度与规则命中摘要；`--debug` 输出调试信息、堆栈与原始命中证据；支持配置输出格式（默认 Excel，可选 JSON/CSV）。
+4) 报告
+   - Excel 字段：规则ID、风险等级、文件/行、证据、建议、是否需人工复核。
+   - 额外 Sheet：规则覆盖统计（命中数/未命中/未适用），方便复盘。
+   - 可选输出 JSON/CSV，默认不生成，通过参数开启。
+5) 错误与提示
+   - 明确错误信息（缺少依赖、解析失败、文件缺失）。
+   - 日志默认中文；建议也需中文。
+
+## 非功能需求
+- 性能：支持中型 iOS 项目；长任务需持续进度日志，日志频率可配置（默认较低，调试可提升）。
+- 兼容性：macOS，支持 Homebrew 安装依赖；离线模式下不访问网络。
+- 可维护性：规则库可扩展；扫描器模块化（plist/代码/依赖/网络/支付/登录等分层）。
+
+## 开放问题
+- 是否需要对 Excel 报告添加风险排序/过滤或颜色高亮？
+
+## 里程碑（建议）
+1) 搭建规则模型与示例规则，完成 Info.plist 扫描与 Excel 输出骨架。
+2) 增加隐私/ATT/支付/登录/网络/私有 API 扫描器，支持风险分级与人工复核标记。
+3) 完善日志/错误处理、CLI 参数、进度输出（含日志频率配置）、规则覆盖统计与可选 JSON/CSV 导出。
+
+## Change Log
+- 2024-xx-xx 初稿
