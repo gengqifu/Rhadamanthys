@@ -2,6 +2,16 @@
 一个用来检查新发布 iOS app 是否符合 App Store 上架标准的工具。
 
 - 工作流程规范：`rules/core-rules/workflow-agile-manual.mdc`
+- 发布说明：见 `RELEASE_NOTES.md`
+
+## 使用说明
+- 预检：`python scanner/cli.py <project_path>`（默认命令为 scan，会先执行预检；若路径或依赖缺失会输出中文错误与退出码）。
+- 扫描并生成报告（Excel 默认）：`python scanner/cli.py <project_path> --out report.xlsx --format excel`
+  - 可选：`--format json` 或 `--format csv`
+  - 可选：`--include src/ app/`、`--exclude Pods/ build/`
+  - 日志频率：`--log-interval-ms 1000`，可加 `--verbose`/`--debug`
+- 规则库更新（占位命令）：`python scanner/cli.py --command update-rules <project_path>`
+- 示例报告：`python examples/generate_sample_reports.py --outdir examples/output`
 
 ## 安装（含离线说明）
 - 依赖：Python 2.7.18；pandas/openpyxl（2.6.4 等兼容版本）；llvm/libclang。
