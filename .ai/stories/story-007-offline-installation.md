@@ -27,7 +27,7 @@ Story Points: 2
 2. 开发任务
    2.1 - [x] 提供 Homebrew 安装 llvm/libclang 步骤与 libclang 路径配置（含离线说明）
    2.2 - [x] 提供离线 Python 包安装方案（wheel/requirements），锁定版本
-   2.3 - [ ] 安装指引/FAQ 文档与示例验证步骤，确保预检通过
+   2.3 - [x] 安装指引/FAQ 文档与示例验证步骤，确保预检通过（README FAQ：libclang 路径、pip 离线、预检失败提示）
 3. 验证
    3.1 - [ ] 运行预检测试并通过
 

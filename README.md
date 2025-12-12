@@ -14,3 +14,8 @@
   - `pandas==0.24.2`、`openpyxl==2.6.4`、`jdcal==1.4.1`、`et_xmlfile==1.0.1`
   - 使用 `pip download -d pkgs pandas==0.24.2 openpyxl==2.6.4 jdcal==1.4.1 et_xmlfile==1.0.1`
   - 拷贝 `pkgs/` 到离线机后执行 `python -m pip install --no-index --find-links pkgs pandas==0.24.2 openpyxl==2.6.4 jdcal==1.4.1 et_xmlfile==1.0.1`
+
+## FAQ（离线/安装常见问题）
+- 找不到 `libclang.dylib`：确认 Homebrew 路径（如 `/opt/homebrew/opt/llvm/lib`），或设置 `LIBCLANG_PATH` 指向实际的 `libclang.dylib` 目录。
+- pip 源不可用：使用 `pip download -d <目录> ...` 在联网机器准备 wheel，离线机用 `--no-index --find-links` 安装。
+- 预检失败：运行 `python scanner/cli.py <project_path>`，根据中文错误提示补齐 Python/依赖/libclang/路径，再重试。
