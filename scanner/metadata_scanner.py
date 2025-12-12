@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 """
 元数据与资源合规扫描（HTTP 链接/支付域/敏感描述/截图占位符）。
@@ -14,6 +13,7 @@ PAYMENT_HINTS = ("pay.", "alipay", "wechatpay", "paypal")
 SENSITIVE_TERMS = (u"赌博", u"返现", u"无限返现", u"博彩")
 PLACEHOLDER_MARKS = ("placeholder", "dummy", "sample")
 IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif")
+IMAGE_PLACEHOLDER_MAX_BYTES = 2048
 
 
 def _read_lines(path):
@@ -69,16 +69,26 @@ def scan(root_path, enable_http=True, enable_payment=True, enable_sensitive_text
             rel_path = os.path.relpath(file_path, root_path)
             lower_name = name.lower()
 
-            # 截图占位符文件名
-            if enable_placeholder and name.lower().endswith(IMAGE_EXTS) and any(mark in lower_name for mark in PLACEHOLDER_MARKS):
+            # 截图占位符（文件名或极小尺寸）
+            is_image = name.lower().endswith(IMAGE_EXTS)
+            is_placeholder_name = any(mark in lower_name for mark in PLACEHOLDER_MARKS)
+            is_tiny_image = False
+            try:
+                is_tiny_image = os.path.getsize(file_path) <= IMAGE_PLACEHOLDER_MAX_BYTES
+            except Exception:
+                is_tiny_image = False
+            if enable_placeholder and is_image and (is_placeholder_name or is_tiny_image):
+                snippet = name
+                if is_tiny_image and not is_placeholder_name:
+                    snippet = u"%s (size<=%dB)" % (name, IMAGE_PLACEHOLDER_MAX_BYTES)
                 add_finding(
                     "META-SCREENSHOT-PLACEHOLDER",
                     "low",
                     rel_path,
                     None,
-                    name,
-                    "检测到疑似占位符截图文件名",
-                    "请替换为真实截图，避免使用占位符图片。",
+                    snippet,
+                    "检测到疑似占位符截图文件",
+                    "请替换为真实截图，避免使用占位符或空白图片。",
                 )
 
             lines = _read_lines(file_path)
