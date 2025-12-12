@@ -9,7 +9,7 @@
   - 可选：`--format json` 或 `--format csv`
   - 可选：`--include src/ app/`、`--exclude Pods/ build/`
   - 日志频率：`--log-interval-ms 1000`，可加 `--verbose`/`--debug`
-- 规则库更新（占位）：`python scanner/cli.py --command update-rules <project_path>`（成功/无更新退出码 0，失败 3；失败时保留本地规则并提示。离线包更新待实现，可手动替换 `scanner/rules/` 与 `version.json`）
+- 规则库更新：`python scanner/cli.py --command update-rules <project_path>`（默认以苹果审核指南页面为来源，内容哈希作为版本；成功/无更新退出码 0，失败 3，失败时保留本地规则并提示。离线包自动更新待实现，可手动替换 `scanner/rules/` 与 `version.json`）
 - 示例报告：`python examples/generate_sample_reports.py --outdir examples/output`
 
 ## 技术原理
