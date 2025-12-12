@@ -1,0 +1,79 @@
+[
+  {
+    "rule_id": "PRIV-001",
+    "group": "PRIV",
+    "severity": "high",
+    "file": "Info.plist",
+    "line": null,
+    "evidence": "缺少权限文案 NSCameraUsageDescription",
+    "reason": "权限文案缺失",
+    "suggestion": "在 Info.plist 中添加 NSCameraUsageDescription 并填入用途说明。",
+    "needs_review": false
+  },
+  {
+    "rule_id": "NET-001",
+    "group": "NET",
+    "severity": "medium",
+    "file": "Info.plist",
+    "line": null,
+    "evidence": "ATS 全局关闭 (NSAllowsArbitraryLoads=true)",
+    "reason": "ATS 全局关闭",
+    "suggestion": "建议开启 ATS 或仅为特定域配置例外。",
+    "needs_review": true
+  },
+  {
+    "rule_id": "PAY-002",
+    "group": "PAY",
+    "severity": "high",
+    "file": "app/Payments.swift",
+    "line": 12,
+    "evidence": "调用第三方支付 SDK: Alipay",
+    "reason": "外链或第三方支付",
+    "suggestion": "数字内容/服务需使用 IAP，移除外链支付或改为 IAP。",
+    "needs_review": true
+  },
+  {
+    "rule_id": "AUTH-003",
+    "group": "AUTH",
+    "severity": "medium",
+    "file": "app/Login.swift",
+    "line": 8,
+    "evidence": "检测到第三方登录实现，缺少 Sign in with Apple",
+    "reason": "缺少 Sign in with Apple",
+    "suggestion": "如使用第三方登录，请在同等位置提供 Sign in with Apple。",
+    "needs_review": true
+  },
+  {
+    "rule_id": "API-PRIVATE",
+    "group": "API",
+    "severity": "high",
+    "file": "app/DeepLink.m",
+    "line": 20,
+    "evidence": "调用 LSApplicationWorkspace openURL",
+    "reason": "疑似私有 API 调用",
+    "suggestion": "移除私有 API，改用公开接口。",
+    "needs_review": true
+  },
+  {
+    "rule_id": "NET-HTTP",
+    "group": "NET",
+    "severity": "medium",
+    "file": "app/Tracking.swift",
+    "line": 30,
+    "evidence": "出现 http://example.com",
+    "reason": "明文 HTTP 调用",
+    "suggestion": "改用 HTTPS 或配置 ATS 例外并说明。",
+    "needs_review": true
+  },
+  {
+    "rule_id": "API-BG",
+    "group": "API",
+    "severity": "low",
+    "file": "app/Background.swift",
+    "line": 5,
+    "evidence": "检测到 beginBackgroundTask 调用",
+    "reason": "后台模式使用需确认",
+    "suggestion": "确保后台声明与实现一致，符合审核要求。",
+    "needs_review": true
+  }
+]
