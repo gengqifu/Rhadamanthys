@@ -10,6 +10,7 @@ Reporting tests（TDD 占位）。
 import csv
 import json
 import os
+import shutil
 import tempfile
 import unittest
 
@@ -17,6 +18,25 @@ try:
     import openpyxl
 except ImportError:
     openpyxl = None
+
+
+class _TempDir(object):
+    """兼容 Python 2/3 的临时目录上下文管理器。"""
+
+    def __enter__(self):
+        self.path = tempfile.mkdtemp()
+        return self.path
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        shutil.rmtree(self.path)
+
+
+def temporary_directory():
+    """返回跨版本可用的临时目录上下文。"""
+    try:
+        return tempfile.TemporaryDirectory()  # type: ignore
+    except AttributeError:  # pragma: no cover - Python 2 兼容
+        return _TempDir()
 
 
 class ReportingTests(unittest.TestCase):
@@ -99,7 +119,7 @@ class ReportingTests(unittest.TestCase):
             self.skipTest("缺少 openpyxl 依赖，暂跳过验证。")
             return
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with temporary_directory() as tmp_dir:
             output_path = os.path.join(tmp_dir, "report.xlsx")
             result_path = generate_excel_report(self.findings, output_path=output_path)
 
@@ -162,7 +182,7 @@ class ReportingTests(unittest.TestCase):
             self.skipTest("报告生成器未实现，暂跳过 JSON/CSV 验证。")
             return
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with temporary_directory() as tmp_dir:
             json_path = os.path.join(tmp_dir, "report.json")
             csv_path = os.path.join(tmp_dir, "report.csv")
 
