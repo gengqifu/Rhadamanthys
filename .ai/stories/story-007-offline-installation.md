@@ -25,7 +25,7 @@ Story Points: 2
        - 路径存在但不可读/无权限：返回 exit_code=1，提示 “无法读取路径/权限不足”。
    1.2 - [x] 编写测试断言：预检失败的错误文案与退出码符合规范（tests/test_preflight.py，预期结构 ok/exit_code/error_msg；依赖/libclang/Python 版本未实现时自动跳过）
 2. 开发任务
-   2.1 - [ ] 提供 Homebrew 安装 llvm/libclang 步骤与 libclang 路径配置（含离线说明）
+   2.1 - [x] 提供 Homebrew 安装 llvm/libclang 步骤与 libclang 路径配置（含离线说明）
    2.2 - [ ] 提供离线 Python 包安装方案（wheel/requirements），锁定版本
    2.3 - [ ] 安装指引/FAQ 文档与示例验证步骤，确保预检通过
 3. 验证
