@@ -16,3 +16,4 @@
 - Create subfolders under `.ai/` as needed to organize documentation.
 - Follow the workflow in `rules/core-rules/workflow-agile-manual.mdc`.
 - Always respond to questions in Chinese.
+- Git 提交信息统一使用中文。
