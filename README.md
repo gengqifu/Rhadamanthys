@@ -14,10 +14,14 @@
 - 示例报告：`python examples/generate_sample_reports.py --outdir examples/output`
 
 ## 技术原理
-- 离线 CLI：Python 2.7 运行，无需联网；预检 Python/依赖/libclang/路径。
-- 规则扫描：Plist/Entitlements（权限文案、ATS/HTTP、后台模式、URL Schemes、导出合规），代码正则/标记扫描（跟踪 SDK/IDFA、第三方支付/登录、私有 API、明文 HTTP、后台模式实现），元数据/资源（HTTP/支付域、敏感描述、占位符截图）。
-- 报告生成：Excel/JSON/CSV，风险降序+规则 ID 升序，高/中/低配色，证据含路径/行/片段与中文建议，覆盖统计。
-- 架构参考：详见 `.ai/architecture/ios-appstore-compliance-arch.md`。
+工具通过 CLI 预检 → 加载规则 → 扫描各模块 → 汇总 Findings → 生成报告：
+- 预检：验证 Python/依赖/libclang 及项目路径可用性，失败返回中文错误与退出码。
+- 扫描：
+  - Plist/Entitlements：检查权限文案、ATS/HTTP 配置、后台模式、URL Schemes、导出合规。
+  - 代码：基于标记文本扫描跟踪 SDK/IDFA、第三方支付/登录、私有 API、明文 HTTP、后台模式实现。
+  - 元数据/资源：检测 HTTP/支付域链接、敏感/夸大描述、占位符截图。
+- 报告：按风险降序+规则 ID 升序输出 Excel/JSON/CSV；Excel 含高/中/低配色与覆盖统计，证据包含路径/行/片段与中文建议。
+- 更多架构细节见 `.ai/architecture/ios-appstore-compliance-arch.md`。
 
 ## 安装（含离线说明）
 - 依赖：Python 2.7.18；pandas/openpyxl（2.6.4 等兼容版本）；llvm/libclang。
