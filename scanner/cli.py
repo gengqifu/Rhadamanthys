@@ -8,6 +8,9 @@ import argparse
 import os
 import sys
 
+from scanner.logging_utils import configure_logging
+from scanner.rules_loader import check_and_update_rules
+
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="iOS 合规扫描器")
@@ -35,12 +38,24 @@ def preflight(project_path):
 
 def main(argv=None):
     args = parse_args(argv)
+    configure_logging(args.log_interval_ms, args.verbose, args.debug)
     result = preflight(args.project_path)
     if not result["ok"]:
         sys.stderr.write(result["error_msg"] + "\n")
         sys.exit(result["exit_code"])
-    # TODO: 根据 args.command 调用 update-rules 或 scan
-    print("预检通过，准备执行 %s" % args.command)
+
+    if args.command == "update-rules":
+        print("[规则库] 开始同步...")
+        try:
+            # 目前未提供官方 fetch 回调，使用本地规则（不阻塞），后续可注入 fetch_official_rules
+            check_and_update_rules()
+            print("[规则库] 同步完成。")
+            sys.exit(0)
+        except Exception as exc:
+            sys.stderr.write("[规则库] 同步失败：%s\n" % exc)
+            sys.exit(3)
+
+    print("预检通过，准备执行扫描（占位，待实现）")
 
 
 if __name__ == "__main__":
