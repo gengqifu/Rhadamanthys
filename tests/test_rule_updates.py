@@ -11,7 +11,6 @@ Scenarios:
 import unittest
 
 
-@unittest.skip("Pending rule update implementation")
 class RuleUpdateFlowTests(unittest.TestCase):
     def test_updates_when_official_newer(self):
         """
@@ -19,6 +18,7 @@ class RuleUpdateFlowTests(unittest.TestCase):
         When check_and_update_rules() runs
         Then it logs start/进度/完成，拉取新规则，持久化版本映射，然后继续扫描。
         """
+        self.fail("TODO: 实现新版检测与同步的测试夹具与断言")
 
     def test_no_update_when_versions_match(self):
         """
@@ -26,6 +26,7 @@ class RuleUpdateFlowTests(unittest.TestCase):
         When check_and_update_rules() runs
         Then it日志提示“无需更新”，不修改本地规则，继续扫描。
         """
+        self.fail("TODO: 实现版本一致时的测试夹具与断言")
 
     def test_offline_or_fetch_error(self):
         """
@@ -33,6 +34,7 @@ class RuleUpdateFlowTests(unittest.TestCase):
         When check_and_update_rules() runs
         Then it日志提示失败原因并按约定退出码处理，不修改本地规则。
         """
+        self.fail("TODO: 实现离线/获取失败时的测试夹具与断言")
 
 
 if __name__ == "__main__":  # pragma: no cover
