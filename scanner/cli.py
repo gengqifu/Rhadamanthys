@@ -44,7 +44,7 @@ def main(argv=None):
         sys.stderr.write(result["error_msg"] + "\n")
         sys.exit(result["exit_code"])
 
-    if args.command == "update-rules":
+    if args.command == "update-rules" or args.command == "sync-rules":
         print("[规则库] 开始同步...")
         try:
             # 目前未提供官方 fetch 回调，使用本地规则（不阻塞），后续可注入 fetch_official_rules
