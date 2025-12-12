@@ -44,6 +44,13 @@ def main(argv=None):
         sys.stderr.write(result["error_msg"] + "\n")
         sys.exit(result["exit_code"])
 
+    # 启动时规则版本比对：失败不阻塞扫描（仅提示），update-rules 命令单独处理。
+    if args.command == "scan":
+        try:
+            check_and_update_rules()
+        except Exception as exc:  # pragma: no cover - 待真实实现
+            sys.stderr.write("[规则库] 更新检查失败（将继续使用本地规则）：%s\n" % exc)
+
     if args.command == "update-rules" or args.command == "sync-rules":
         print("[规则库] 开始同步...")
         try:
