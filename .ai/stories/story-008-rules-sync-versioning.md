@@ -21,7 +21,6 @@ Story Points: 3
    1.1 - [x] 场景梳理：有更新（远端版本高于本地并写入 version.json）、无更新（提示已最新）、下载失败/解析失败（退出码 3，保留旧版本）、离线缓存回退（无网络使用缓存，提示离线），定义预期日志与退出码（成功 0、无更新 0、失败 3）。
    1.2 - [x] 版本文件断言：写入 `rules/version.json` 的字段（version/released_at/source_link/changelog/checksum）与内容变更检查。
    1.3 - [x] CLI 行为断言：`update-rules` 命令与启动比对路径的提示/继续扫描行为（tests/test_rule_updates.py 已加入 CLI 场景占位）。
-   1.3 - [ ] CLI 行为断言：`update-rules` 命令与启动比对路径的提示/继续扫描行为。
 2. 测试实现
    2.1 - [x] 编写/更新测试文件（如 `tests/test_rules_sync.py`）：利用假远端/假缓存，覆盖 1.x 场景，断言日志、退出码、文件写入与回退。（当前占位 `tests/test_rule_updates.py` 已去除跳过，待实现断言）
    2.2 - [x] 测试夹具：构造伪官方规则包/缓存包，生成不同版本的模拟数据（在占位测试中注明需添加 fail 占位，等待实现）。
