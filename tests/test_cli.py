@@ -41,6 +41,11 @@ class CliTests(unittest.TestCase):
         # TODO: 传入非法 format，预期退出码 1/错误提示
         pass
 
+    def test_rule_update_prompt_flow(self):
+        """启动时规则库更新流程的提示（有更新/无更新/失败）。"""
+        # TODO: 模拟有更新、无更新、失败三种场景，断言开始/进度/完成或失败日志与退出码。
+        pass
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
