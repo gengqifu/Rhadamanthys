@@ -19,7 +19,7 @@ Story Points: 3
 1. 测试任务
    1.1 - [x] 设计测试用例：字段缺失/非法值、ID 分组/条款链接校验、版本/变更记录校验
    1.2 - [x] 编写测试断言，涵盖加载成功/失败场景
-   1.3 - [ ] 设计测试：官方规则版本映射、更新检测与本地规则库同步流程（含无网络/已是最新的场景）
+   1.3 - [x] 设计测试：官方规则版本映射、更新检测与本地规则库同步流程（含无网络/已是最新的场景）
 2. 开发任务
    2.1 - [x] 定义规则 Schema（ID、group、title、source_link、section、severity、confidence、suggestion_template、version、changelog）
    2.2 - [x] 实现规则加载与字段校验（YAML/JSON）
