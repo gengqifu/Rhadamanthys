@@ -30,7 +30,7 @@ Story Points: 3
    3.3 - [x] 实现 `update-rules`：下载/校验（checksum）/解析/落盘规则与版本文件，中文日志，失败退出码 3（已在 `rules_loader.check_and_update_rules` 接入版本文件与校验占位）。
    3.4 - [x] 启动版本比对：比对本地与远端版本，提示更新（不阻塞扫描，可选择继续），离线时使用缓存且提示（已在 CLI 启动时调用 check_and_update_rules，失败时仅提示继续）。
 4. 文档与示例
-   4.1 - [ ] 在 README/安装指南补充规则同步与离线缓存包使用说明。
+   4.1 - [x] 在 README/安装指南补充规则同步与离线缓存包使用说明。
    4.2 - [ ] 示例脚本/命令片段：演示从本地 zip/tar.gz 缓存加载规则。
 
 ## Constraints
