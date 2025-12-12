@@ -1,5 +1,5 @@
 # 用户故事：Info.plist 与 Entitlements 扫描
-- 状态：Draft
+- 状态：Complete
 - 故事点：3 SP
 
 ## 背景
