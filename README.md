@@ -9,7 +9,7 @@
   - 可选：`--format json` 或 `--format csv`
   - 可选：`--include src/ app/`、`--exclude Pods/ build/`
   - 日志频率：`--log-interval-ms 1000`，可加 `--verbose`/`--debug`
-- 规则库更新（占位命令）：`python scanner/cli.py --command update-rules <project_path>`
+- 规则库更新（占位）：`python scanner/cli.py --command update-rules <project_path>`（成功/无更新退出码 0，失败 3；失败时保留本地规则并提示。离线包更新待实现，可手动替换 `scanner/rules/` 与 `version.json`）
 - 示例报告：`python examples/generate_sample_reports.py --outdir examples/output`
 
 ## 技术原理
@@ -33,9 +33,6 @@
   - `pandas==0.24.2`、`openpyxl==2.6.4`、`jdcal==1.4.1`、`et_xmlfile==1.0.1`
   - 使用 `pip download -d pkgs pandas==0.24.2 openpyxl==2.6.4 jdcal==1.4.1 et_xmlfile==1.0.1`
   - 拷贝 `pkgs/` 到离线机后执行 `python -m pip install --no-index --find-links pkgs pandas==0.24.2 openpyxl==2.6.4 jdcal==1.4.1 et_xmlfile==1.0.1`
-- 规则同步（占位实现，待接入官方源）：
-  - 在线：`python scanner/cli.py --command update-rules <project_path>`（成功 0、无更新 0、失败 3；失败时保留本地规则并提示）。
-  - 离线缓存包：预期支持从本地 zip/tar.gz 规则包更新（待实现），当前可手动替换 `scanner/rules/` 下规则文件并更新 `version.json`。
 
 ## FAQ（离线/安装常见问题）
 - 找不到 `libclang.dylib`：确认 Homebrew 路径（如 `/opt/homebrew/opt/llvm/lib`），或设置 `LIBCLANG_PATH` 指向实际的 `libclang.dylib` 目录。
