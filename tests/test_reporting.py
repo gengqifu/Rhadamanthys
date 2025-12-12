@@ -100,16 +100,19 @@ class ReportingTests(unittest.TestCase):
         ]
         self.expected_order = ["PAY-002", "PRIV-001", "AUTH-003", "NET-HTTP"]
         self.coverage_expected = {
-            "PAY": {"high": 1, "medium": 0, "low": 0, "needs_review": 1, "total": 1},
-            "PRIV": {"high": 1, "medium": 0, "low": 0, "needs_review": 0, "total": 1},
-            "AUTH": {"high": 0, "medium": 1, "low": 0, "needs_review": 1, "total": 1},
-            "NET": {"high": 0, "medium": 0, "low": 1, "needs_review": 1, "total": 1},
-            "合计": {"high": 2, "medium": 1, "low": 1, "needs_review": 3, "total": 4},
+            u"PAY": {"high": 1, "medium": 0, "low": 0, "needs_review": 1, "total": 1},
+            u"PRIV": {"high": 1, "medium": 0, "low": 0, "needs_review": 0, "total": 1},
+            u"AUTH": {"high": 0, "medium": 1, "low": 0, "needs_review": 1, "total": 1},
+            u"NET": {"high": 0, "medium": 0, "low": 1, "needs_review": 1, "total": 1},
+            u"合计": {"high": 2, "medium": 1, "low": 1, "needs_review": 3, "total": 4},
         }
         self.severity_order = ("high", "medium", "low")
         self.formatted_by_rule = {}
         for f in self.findings:
-            self.formatted_by_rule[f["rule_id"]] = dict(f, evidence=self._format_evidence(f))
+            expected = dict(f, evidence=self._format_evidence(f))
+            for key in ("reason", "suggestion", "file"):
+                expected[key] = self._to_text(expected.get(key))
+            self.formatted_by_rule[f["rule_id"]] = expected
 
     def _format_evidence(self, finding):
         def _to_text(value):
@@ -186,20 +189,20 @@ class ReportingTests(unittest.TestCase):
             coverage_headers = [cell.value for cell in coverage_sheet[1]]
             self.assertEqual(
                 coverage_headers,
-                ["分组", "高", "中", "低", "人工复核", "总计"],
+                [u"分组", u"高", u"中", u"低", u"人工复核", u"总计"],
                 "覆盖统计表头不符合约定。",
             )
 
             for row in coverage_sheet.iter_rows(min_row=2, values_only=True):
-                group = row[0]
+                group = self._to_text(row[0])
                 if group not in self.coverage_expected:
                     continue
                 expected_stats = self.coverage_expected[group]
-                self.assertEqual(row[1], expected_stats["high"], "%s 高风险数量不匹配。" % group)
-                self.assertEqual(row[2], expected_stats["medium"], "%s 中风险数量不匹配。" % group)
-                self.assertEqual(row[3], expected_stats["low"], "%s 低风险数量不匹配。" % group)
-                self.assertEqual(row[4], expected_stats["needs_review"], "%s 人工复核数量不匹配。" % group)
-                self.assertEqual(row[5], expected_stats["total"], "%s 总计数量不匹配。" % group)
+                self.assertEqual(row[1], expected_stats["high"], u"%s 高风险数量不匹配。" % group)
+                self.assertEqual(row[2], expected_stats["medium"], u"%s 中风险数量不匹配。" % group)
+                self.assertEqual(row[3], expected_stats["low"], u"%s 低风险数量不匹配。" % group)
+                self.assertEqual(row[4], expected_stats["needs_review"], u"%s 人工复核数量不匹配。" % group)
+                self.assertEqual(row[5], expected_stats["total"], u"%s 总计数量不匹配。" % group)
 
     def test_json_csv_output(self):
         """验证 JSON/CSV 输出正确。"""

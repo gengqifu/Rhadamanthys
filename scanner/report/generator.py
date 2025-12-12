@@ -128,7 +128,7 @@ def _build_coverage(findings):
     coverage = {}
     total = {"high": 0, "medium": 0, "low": 0, "needs_review": 0, "total": 0}
     for f in findings:
-        group = f.get("group") or "未分组"
+        group = _to_text(f.get("group") or "未分组")
         sev = (f.get("severity") or "").lower()
         needs_review = bool(f.get("needs_review"))
 
@@ -145,7 +145,7 @@ def _build_coverage(findings):
             coverage[group]["needs_review"] += 1
             total["needs_review"] += 1
 
-    coverage["合计"] = total
+    coverage[_to_text("合计")] = total
     return coverage
 
 
@@ -179,13 +179,14 @@ def generate_excel_report(findings, output_path="report.xlsx"):
     ws_cov.append(["分组", "高", "中", "低", "人工复核", "总计"])
 
     coverage = _build_coverage(normalized_findings)
-    for group in sorted(k for k in coverage.keys() if k != "合计"):
+    total_key = _to_text("合计")
+    for group in sorted(k for k in coverage.keys() if k != total_key):
         stats = coverage[group]
         ws_cov.append([group, stats["high"], stats["medium"], stats["low"], stats["needs_review"], stats["total"]])
     # 合计置底
-    total_stats = coverage.get("合计", {})
+    total_stats = coverage.get(total_key, {})
     if total_stats:
-        ws_cov.append(["合计", total_stats.get("high", 0), total_stats.get("medium", 0), total_stats.get("low", 0), total_stats.get("needs_review", 0), total_stats.get("total", 0)])
+        ws_cov.append([total_key, total_stats.get("high", 0), total_stats.get("medium", 0), total_stats.get("low", 0), total_stats.get("needs_review", 0), total_stats.get("total", 0)])
 
     # 确保输出目录存在
     out_dir = os.path.dirname(os.path.abspath(output_path))
