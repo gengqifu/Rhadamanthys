@@ -16,12 +16,13 @@
 ## Features and Requirements
 - 功能：规则库（分组、版本、条款链接、高置信/人工复核标记）、plist/Entitlements 扫描、代码与依赖扫描、报告生成（Excel/可选 JSON/CSV）、CLI 与预检、日志与错误输出。
 - 规则更新：规则库需与苹果官方审核规则版本对应；启动时检测官方更新，先同步本地规则库（提示开始/进度/完成）再扫描。
+- 规则同步命令：提供独立命令（如 `python cli.py update-rules`/`sync-rules`）从官方文档生成/更新本地规则库，扫描命令仅做版本比对与提示。
 - 非功能：离线运行，Python 2.7.18 兼容，macOS + Homebrew clang/libclang 支持；性能可控（目录/大小过滤），模块化可维护。
 - 体验：日志中文，默认 1s 频率，可降至 30ms（提示 I/O 开销）；输出证据包含文件/行/片段与中文理由/建议。
 - 集成/合规：规则来源记录官方条款链接与版本日期；风险配色高红/中黄/低绿，排序风险降序+规则ID 升序；覆盖统计 Sheet。
 
 ## Epic List
-### Epic-1: 规则库与预检
+### Epic-1: 规则库与预检（含规则同步）
 ### Epic-2: 扫描器（配置/代码/依赖）
 ### Epic-3: 报告与日志
 ### Epic-4: 测试与示例
@@ -40,7 +41,7 @@
 
 ## Epic 3: Story List
 - Story 5: CLI、日志与预检 — Status: Complete
-  - CLI 参数解析；预检 Python/依赖/libclang/路径；日志频率可配；退出码约定。
+  - CLI 参数解析；预检 Python/依赖/libclang/路径；日志频率可配；退出码约定；规则同步命令/流程。
 - Story 6: 报告生成 — Status: Complete
   - Excel 主输出（红/黄/绿配色，风险降序+规则ID 升序，覆盖统计 Sheet）；可选 JSON/CSV；证据格式中文化。
 
@@ -58,8 +59,8 @@
 | JSON/YAML 解析 | 规则库存储与加载 |
 
 ## Reference
-- App Store Review Guidelines（官方链接）
-- Human Interface Guidelines（官方链接）
+- App Store Review Guidelines（官方链接，如 https://developer.apple.com/app-store/review/guidelines/，记录当前官方版本号/发布日期）
+- Human Interface Guidelines（官方链接，如 https://developer.apple.com/design/human-interface-guidelines/，记录当前官方版本号/发布日期）
 - 规则库需记录条款编号、来源链接、发布日期，并维护与官方版本的对应关系。
 
 ## Data Models, API Specs, Schemas, etc...

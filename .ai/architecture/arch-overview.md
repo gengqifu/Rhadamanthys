@@ -11,6 +11,7 @@
 
 ## 3) High-Level Architecture
 - CLI & 预检层：参数解析；检查 Python/依赖/libclang/路径；控制日志频率（默认 1s，可降到 30ms 提示 I/O 开销）；统一退出码。
+- 规则同步：独立命令 `update-rules/sync-rules` 从官方文档生成/更新本地规则库；扫描前仅做版本比对与提示。
 - 扫描协调器：管理目录/文件过滤（忽略 build/DerivedData/Pods/.git/node_modules、大文件阈值）；调度各扫描器；聚合结果。
 - 规则库：YAML/JSON，分组/ID（PRIV/PAY/AUTH/NET/API/META），条款链接、风险级、高置信/人工复核标记、版本/变更记录。
 - 扫描器模块：

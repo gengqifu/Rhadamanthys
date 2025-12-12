@@ -10,7 +10,7 @@ Complete
 
 ## Context
 - 基于 PRD/架构：需要可扩展的规则库，包含分组、条款链接、风险级、高置信/人工复核标记、版本/变更记录。
-- 需提供示例规则，支持 YAML/JSON 加载校验。
+- 需提供示例规则，支持 YAML/JSON 加载校验，并记录官方规则链接/版本元数据。
 
 ## Estimation
 Story Points: 3
