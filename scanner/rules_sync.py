@@ -13,24 +13,39 @@ import json
 import os
 
 
+VERSION_FIELDS = ("current_version", "released_at", "source_link", "changelog", "checksum")
+
+
+def default_version_data():
+    """返回带占位字段的版本信息。"""
+    return {k: None for k in VERSION_FIELDS}
+
+
 def load_version_file(path):
     """读取本地版本文件，返回 dict；不存在时返回空结构。"""
     if not os.path.exists(path):
-        return {"current_version": None, "released_at": None, "source_link": None, "changelog": None, "checksum": None}
+        return default_version_data()
     with open(path, "r") as f:
         try:
-            return json.load(f)
+                data = json.load(f)
         except Exception:
-            return {"current_version": None, "released_at": None, "source_link": None, "changelog": None, "checksum": None}
+            return default_version_data()
+    # 补全缺失字段，保持向后兼容
+    for key in VERSION_FIELDS:
+        if key not in data:
+            data[key] = None
+    return data
 
 
 def write_version_file(path, data):
     """写入版本文件（占位，无并发/锁处理）。"""
+    normalized = default_version_data()
+    normalized.update(data or {})
     dirname = os.path.dirname(path)
     if dirname and not os.path.exists(dirname):
         os.makedirs(dirname)
     with open(path, "w") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+        json.dump(normalized, f, indent=2, ensure_ascii=False)
     return path
 
 
@@ -56,4 +71,11 @@ def fetch_official_rules(source_link, cache_dir=None):
     raise NotImplementedError("规则获取待实现")
 
 
-__all__ = ["load_version_file", "write_version_file", "compare_versions", "fetch_official_rules"]
+__all__ = [
+    "VERSION_FIELDS",
+    "default_version_data",
+    "load_version_file",
+    "write_version_file",
+    "compare_versions",
+    "fetch_official_rules",
+]
