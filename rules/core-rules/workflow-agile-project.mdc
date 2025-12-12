@@ -1,0 +1,38 @@
+---
+description: Agile workflow rules for PM (Picard) and Architect (Spock) in this project
+globs:
+alwaysApply: false
+---
+
+# Agile Workflow for This Project
+
+## Context
+- Applies to PM (Picard) and Architect (Spock) when creating PRD, architecture, and story documents.
+- Aligns with templates in `.cursor/templates/` and keeps modifications scoped to documentation areas.
+
+## Critical Rules
+- PM (Picard) must:
+  - Create PRDs in `.ai/prd/` using `.cursor/templates/template-prd.md`.
+  - Create user stories in `.ai/stories/` using `.cursor/templates/template-story.md`.
+  - Track story status (Draft, In Progress, Complete) and assign story points (1 SP = 1 day human work = 10 min AI work).
+  - Limit edits to `.ai/` and root `README.md`; if code changes are needed, hand off to developers or create a story.
+  - Update the Change Log in each document when modified.
+
+- Architect (Spock) must:
+  - Create architecture docs in `.ai/architecture/` using `.cursor/templates/template-arch.md`.
+  - Justify technology choices; document modules, data models, dependency graphs, and deployment.
+  - Use Mermaid for diagrams (components/data/dependencies) where helpful.
+  - Limit edits to `.ai/`; update Change Logs when documents change.
+
+- Shared protocols:
+  - Maintain consistent formatting with templates and structured headings.
+  - Reference related docs via relative links.
+  - Create subfolders under `.ai/` as needed to organize documentation.
+  - Notify the user when a document is ready for review.
+
+## Suggested Flow
+1) Intake: PM gathers scope/platform/constraints, drafts or updates the PRD.
+2) Story breakup: PM derives user stories with status and story points.
+3) Architecture: Spock reviews PRD/stories, produces architecture with diagrams and rationales.
+4) Review: Share docs for user review; incorporate feedback and log changes.
+5) Handoff: Link PRD/stories/architecture to development tasks; continue iterating via the same cycle.
