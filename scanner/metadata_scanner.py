@@ -24,16 +24,23 @@ def _read_lines(path):
         return []
 
 
-def scan(root_path):
+def scan(root_path, enable_http=True, enable_payment=True, enable_sensitive_text=True, enable_placeholder=True):
     """
     扫描指定目录，返回 (findings, metadata)。
     - NET-META-HTTP：检测 http 链接
     - PAY-LINK：检测疑似支付域
     - META-DESC-SENSITIVE：描述/关键词敏感/夸大
     - META-SCREENSHOT-PLACEHOLDER：截图占位符命名
+    可通过开关控制检测项。
     """
     findings = []
-    metadata = {"root_path": root_path}
+    metadata = {
+        "root_path": root_path,
+        "enable_http": enable_http,
+        "enable_payment": enable_payment,
+        "enable_sensitive_text": enable_sensitive_text,
+        "enable_placeholder": enable_placeholder,
+    }
 
     def add_finding(rule_id, severity, file_path, line, snippet, reason, suggestion, needs_review=True):
         evidence_parts = [u"路径:%s" % file_path]
@@ -63,7 +70,7 @@ def scan(root_path):
             lower_name = name.lower()
 
             # 截图占位符文件名
-            if name.lower().endswith(IMAGE_EXTS) and any(mark in lower_name for mark in PLACEHOLDER_MARKS):
+            if enable_placeholder and name.lower().endswith(IMAGE_EXTS) and any(mark in lower_name for mark in PLACEHOLDER_MARKS):
                 add_finding(
                     "META-SCREENSHOT-PLACEHOLDER",
                     "low",
@@ -80,7 +87,7 @@ def scan(root_path):
 
             for idx, line in enumerate(lines, 1):
                 lower_line = line.lower()
-                if HTTP_MARK in lower_line:
+                if enable_http and HTTP_MARK in lower_line:
                     add_finding(
                         "NET-META-HTTP",
                         "medium",
@@ -90,7 +97,7 @@ def scan(root_path):
                         "检测到明文 HTTP 链接",
                         "请改用 HTTPS，或说明必要性并提供 ATS 配置。",
                     )
-                if any(hint in lower_line for hint in PAYMENT_HINTS):
+                if enable_payment and any(hint in lower_line for hint in PAYMENT_HINTS):
                     add_finding(
                         "PAY-LINK",
                         "medium",
@@ -100,7 +107,7 @@ def scan(root_path):
                         "检测到疑似支付域名/链接",
                         "数字内容/服务需使用 IAP，避免外链/第三方支付。",
                     )
-                if any(term in line for term in SENSITIVE_TERMS):
+                if enable_sensitive_text and any(term in line for term in SENSITIVE_TERMS):
                     add_finding(
                         "META-DESC-SENSITIVE",
                         "low",
