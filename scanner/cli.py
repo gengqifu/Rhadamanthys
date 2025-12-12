@@ -29,11 +29,44 @@ def parse_args(argv=None):
 def preflight(project_path):
     """
     简单预检占位：检查路径存在。
-    TODO: 检查 Python 版本、依赖、libclang。
     """
     if not os.path.exists(project_path):
         return {"ok": False, "exit_code": 1, "error_msg": "项目路径不存在: %s" % project_path}
     return {"ok": True, "exit_code": 0, "error_msg": ""}
+
+
+def preflight_check_dependencies(deps):
+    """
+    简单依赖检查：尝试 import 指定包，缺失则返回失败。
+    """
+    missing = []
+    for name in deps:
+        try:
+            __import__(name)
+        except Exception:
+            missing.append(name)
+    if missing:
+        return {"ok": False, "exit_code": 2, "error_msg": "缺少依赖: %s" % ",".join(missing)}
+    return {"ok": True, "exit_code": 0, "error_msg": ""}
+
+
+def preflight_check_python(required=(2, 7)):
+    """
+    校验 Python 主次版本。
+    """
+    if sys.version_info[:2] != required:
+        return {"ok": False, "exit_code": 2, "error_msg": "Python 版本不支持: %s" % ".".join(map(str, sys.version_info[:3]))}
+    return {"ok": True, "exit_code": 0, "error_msg": ""}
+
+
+def preflight_check_libclang(env_path=None):
+    """
+    简单检查 libclang 路径是否存在。
+    """
+    path = env_path or os.environ.get("LIBCLANG_PATH")
+    if path and os.path.exists(path):
+        return {"ok": True, "exit_code": 0, "error_msg": ""}
+    return {"ok": False, "exit_code": 2, "error_msg": "未找到 libclang，请设置 LIBCLANG_PATH"}
 
 
 def main(argv=None):

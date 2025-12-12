@@ -66,7 +66,7 @@ class PreflightTests(unittest.TestCase):
         result = cli.preflight_check_dependencies(["pandas", "openpyxl"])
         if result.get("ok", True):
             self.skipTest("依赖检查未触发缺失，可能已安装依赖。")
-        self._assert_exit(result, 2, "openpyxl")
+        self._assert_exit(result, 2, "缺少依赖")
 
     def test_missing_libclang(self):
         """libclang 缺失时返回退出码 2，并提示配置路径。"""

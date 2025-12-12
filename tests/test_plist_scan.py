@@ -1,46 +1,62 @@
 # -*- coding: utf-8 -*-
 """
-Plist/Entitlements scanner tests（TDD 占位）。
-
-覆盖场景：
-- 权限文案缺失/为空（含多语言）
-- ATS 全关 / 例外域名过多
-- 异常后台模式 / 缺少对应功能
-- 缺少 Sign in with Apple、URL Schemes 异常
-- 导出合规标记缺失
+Plist/Entitlements scanner tests。
 """
 
+import os
+import plistlib
+import tempfile
 import unittest
 
-from scanner import plist_scanner  # 待实现模块
+from scanner import plist_scanner
 
 
-@unittest.skip("待实现 plist/entitlements 扫描器")
 class PlistScanTests(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.plist_path = os.path.join(self.tmpdir, "Info.plist")
+
+    def _run_scan(self, data):
+        plistlib.writePlist(data, self.plist_path)
+        findings, _ = plist_scanner.scan(self.plist_path)
+        return findings
+
+    def _assert_rule(self, findings, rule_id):
+        self.assertTrue(any(f.get("rule_id") == rule_id for f in findings), "未命中规则 %s" % rule_id)
+
     def test_missing_permission_strings(self):
-        """缺失或为空的权限文案应被命中并给出中文建议。"""
-        # TODO: 构造带缺失权限文案的 plist/strings，调用扫描器并断言 Findings
-        pass
+        """缺失或为空的权限文案应被命中。"""
+        data = {}
+        findings = self._run_scan(data)
+        self._assert_rule(findings, "PRIV-001")
 
     def test_ats_disabled_or_excessive_exceptions(self):
-        """ATS 全关或例外过多应被标记风险。"""
-        # TODO: 构造 ATS 全关或例外过多的 plist，断言 Findings
-        pass
+        """ATS 全关应标记风险。"""
+        data = {"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True}}
+        findings = self._run_scan(data)
+        self._assert_rule(findings, "NET-001")
 
     def test_invalid_background_modes(self):
-        """后台模式异常或无对应功能时应命中风险。"""
-        # TODO: 构造异常后台模式，断言 Findings
-        pass
+        """后台模式异常命中风险。"""
+        data = {"UIBackgroundModes": ["location"]}
+        findings = self._run_scan(data)
+        self._assert_rule(findings, "API-001")
 
     def test_missing_sign_in_with_apple(self):
-        """存在第三方登录但缺少 Sign in with Apple 应提示风险。"""
-        # TODO: 构造包含第三方登录 URL Schemes 但缺 Apple 登录的配置，断言 Findings
-        pass
+        """存在第三方登录但缺少苹果登录提示风险。"""
+        data = {
+            "CFBundleURLTypes": [
+                {"CFBundleURLSchemes": ["weixin123"]}
+            ]
+        }
+        findings = self._run_scan(data)
+        self._assert_rule(findings, "AUTH-003")
 
     def test_missing_export_compliance(self):
-        """导出合规标记缺失时应提示补全。"""
-        # TODO: 构造缺少导出合规标记的配置，断言 Findings
-        pass
+        """导出合规标记缺失时提示补全。"""
+        data = {}
+        findings = self._run_scan(data)
+        self._assert_rule(findings, "META-001")
 
 
 if __name__ == "__main__":  # pragma: no cover
