@@ -32,6 +32,18 @@ except NameError:  # pragma: no cover
     unicode = str  # type: ignore
 
 
+def _to_text(value):
+    """确保输出为 unicode（兼容 Python 2/3）。"""
+    if value is None:
+        return value
+    if isinstance(value, bytes):  # pragma: no cover - Python 2/兼容
+        try:
+            return value.decode("utf-8")
+        except Exception:
+            return value.decode("utf-8", "ignore")
+    return value
+
+
 def _severity_rank(severity):
     sev = (severity or "").lower()
     return SEVERITY_ORDER.index(sev) if sev in SEVERITY_ORDER else len(SEVERITY_ORDER)
@@ -42,10 +54,40 @@ def sort_findings(findings):
     return sorted(findings, key=lambda f: (_severity_rank(f.get("severity")), f.get("rule_id", "")))
 
 
+def format_evidence(finding):
+    """格式化证据，包含路径/行号/片段。"""
+    file_path = _to_text(finding.get("file") or "-")
+    line = finding.get("line")
+    line_str = line if line is not None else "-"
+    snippet = _to_text(finding.get("evidence") or "")
+    parts = [u"路径:%s:%s" % (file_path, line_str)]
+    if snippet:
+        parts.append(u"片段:%s" % snippet)
+    return u" | ".join(parts)
+
+
+def _normalize_findings(findings):
+    """补全字段并格式化证据/建议，保持字段顺序。"""
+    normalized = []
+    for f in sort_findings(findings):
+        item = {}
+        for key in HEADERS:
+            value = f.get(key)
+            if key in ("evidence", "reason", "suggestion", "rule_id", "group", "severity", "file"):
+                item[key] = _to_text(value)
+            else:
+                item[key] = value
+        item["evidence"] = format_evidence(f)
+        item["reason"] = _to_text(f.get("reason") or "")
+        item["suggestion"] = _to_text(f.get("suggestion") or "")
+        normalized.append(item)
+    return normalized
+
+
 def generate_json_report(findings, output_path="report.json"):
     """生成 JSON 报告并返回路径。"""
-    sorted_findings = sort_findings(findings)
-    content = json.dumps(sorted_findings, ensure_ascii=False, indent=2)
+    normalized_findings = _normalize_findings(findings)
+    content = json.dumps(normalized_findings, ensure_ascii=False, indent=2)
     if isinstance(content, bytes):  # Python 2 返回 str，需要解码
         content = content.decode("utf-8")
     with io.open(output_path, "w", encoding="utf-8") as f:
@@ -68,7 +110,7 @@ def _encode_row_for_csv(row):
 
 def generate_csv_report(findings, output_path="report.csv"):
     """生成 CSV 报告并返回路径。"""
-    sorted_findings = sort_findings(findings)
+    normalized_findings = _normalize_findings(findings)
     if sys.version_info[0] >= 3:
         f = io.open(output_path, "w", encoding="utf-8", newline="")
     else:  # pragma: no cover - Python 2 兼容
@@ -76,7 +118,7 @@ def generate_csv_report(findings, output_path="report.csv"):
     with f:
         writer = csv.DictWriter(f, fieldnames=HEADERS)
         writer.writeheader()
-        for item in sorted_findings:
+        for item in normalized_findings:
             writer.writerow(_encode_row_for_csv({key: item.get(key) for key in HEADERS}))
     return output_path
 
@@ -112,14 +154,14 @@ def generate_excel_report(findings, output_path="report.xlsx"):
     if openpyxl is None or PatternFill is None:  # pragma: no cover
         raise ImportError("缺少 openpyxl 依赖，无法生成 Excel 报告。")
 
-    sorted_findings = sort_findings(findings)
+    normalized_findings = _normalize_findings(findings)
     wb = openpyxl.Workbook()
 
     # Findings Sheet
     ws_findings = wb.active
     ws_findings.title = "Findings"
     ws_findings.append(HEADERS)
-    for item in sorted_findings:
+    for item in normalized_findings:
         row_values = [item.get(key) for key in HEADERS]
         ws_findings.append(row_values)
 
@@ -136,7 +178,7 @@ def generate_excel_report(findings, output_path="report.xlsx"):
     ws_cov = wb.create_sheet("Coverage")
     ws_cov.append(["分组", "高", "中", "低", "人工复核", "总计"])
 
-    coverage = _build_coverage(findings)
+    coverage = _build_coverage(normalized_findings)
     for group in sorted(k for k in coverage.keys() if k != "合计"):
         stats = coverage[group]
         ws_cov.append([group, stats["high"], stats["medium"], stats["low"], stats["needs_review"], stats["total"]])
@@ -157,6 +199,7 @@ __all__ = [
     "SEVERITY_COLORS",
     "HEADERS",
     "sort_findings",
+    "format_evidence",
     "generate_json_report",
     "generate_csv_report",
     "generate_excel_report",

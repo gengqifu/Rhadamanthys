@@ -107,6 +107,35 @@ class ReportingTests(unittest.TestCase):
             "合计": {"high": 2, "medium": 1, "low": 1, "needs_review": 3, "total": 4},
         }
         self.severity_order = ("high", "medium", "low")
+        self.formatted_by_rule = {}
+        for f in self.findings:
+            self.formatted_by_rule[f["rule_id"]] = dict(f, evidence=self._format_evidence(f))
+
+    def _format_evidence(self, finding):
+        def _to_text(value):
+            if isinstance(value, bytes):
+                try:
+                    return value.decode("utf-8")
+                except Exception:
+                    return value.decode("utf-8", "ignore")
+            return value
+
+        line = finding.get("line")
+        line_str = line if line is not None else "-"
+        snippet = _to_text(finding.get("evidence") or "")
+        file_path = _to_text(finding.get("file") or "-")
+        parts = [u"路径:%s:%s" % (file_path, line_str)]
+        if snippet:
+            parts.append(u"片段:%s" % snippet)
+        return u" | ".join(parts)
+
+    def _to_text(self, value):
+        if isinstance(value, bytes):
+            try:
+                return value.decode("utf-8")
+            except Exception:
+                return value.decode("utf-8", "ignore")
+        return value
 
     def test_excel_output(self):
         """验证字段完整、配色规则、风险降序+规则ID 升序、覆盖统计数值。"""
@@ -139,12 +168,10 @@ class ReportingTests(unittest.TestCase):
             self.assertEqual(rule_ids, self.expected_order, "排序应按风险降序、规则ID 升序。")
 
             severity_index = headers.index("severity")
-            findings_by_rule = {f["rule_id"]: f for f in self.findings}
-
             for row_idx, row in enumerate(findings_sheet.iter_rows(min_row=2, values_only=False)):
                 values = [cell.value for cell in row]
                 rule_id = values[0]
-                expected = findings_by_rule[rule_id]
+                expected = self.formatted_by_rule[rule_id]
                 for idx, header in enumerate(self.expected_headers):
                     self.assertEqual(values[idx], expected[header], "字段 %s 填充不正确。" % header)
 
@@ -200,6 +227,8 @@ class ReportingTests(unittest.TestCase):
             for item in data:
                 for header in self.expected_headers:
                     self.assertIn(header, item, "JSON 缺少字段 %s。" % header)
+                expected_evidence = self.formatted_by_rule[item["rule_id"]]["evidence"]
+                self.assertEqual(item["evidence"], expected_evidence, "JSON 证据格式不包含路径/行/片段。")
 
             with open(csv_result, "r") as cf:
                 reader = csv.DictReader(cf)
@@ -209,9 +238,24 @@ class ReportingTests(unittest.TestCase):
             self.assertEqual(csv_rule_ids, self.expected_order, "CSV 输出排序应按风险降序、规则ID 升序。")
             # CSV 将数值转为字符串，做字符串对比
             for row in rows:
-                source = next(f for f in self.findings if f["rule_id"] == row["rule_id"])
+                source = self.formatted_by_rule[row["rule_id"]]
                 for header in self.expected_headers:
-                    self.assertEqual(str(row[header]), str(source[header]), "CSV 字段 %s 填充不正确。" % header)
+                    if header == "needs_review":
+                        self.assertEqual(
+                            str(row[header]).lower(),
+                            str(bool(source[header])).lower(),
+                            "CSV 字段 %s 填充不正确。" % header,
+                        )
+                        continue
+                    if header == "line":
+                        actual_line = int(row[header]) if row[header] not in (None, "", "None") else None
+                        self.assertEqual(actual_line, source[header], "CSV 字段 %s 填充不正确。" % header)
+                        continue
+                    self.assertEqual(
+                        self._to_text(row[header]),
+                        self._to_text(source[header]),
+                        "CSV 字段 %s 填充不正确。" % header,
+                    )
 
 
 if __name__ == "__main__":  # pragma: no cover
