@@ -17,14 +17,14 @@ Story Points: 2
 
 ## Tasks
 1. 测试任务
-   - [ ] 设计测试：预检缺少 Python/依赖/libclang/路径错误的场景与期望退出码/提示
-   - [ ] 编写测试断言：预检失败的错误文案与退出码符合规范
+   1.1 - [ ] 设计测试：预检缺少 Python/依赖/libclang/路径错误的场景与期望退出码/提示
+   1.2 - [ ] 编写测试断言：预检失败的错误文案与退出码符合规范
 2. 开发任务
-   - [ ] 提供 Homebrew 安装 llvm/libclang 步骤与 libclang 路径配置（含离线说明）
-   - [ ] 提供离线 Python 包安装方案（wheel/requirements），锁定版本
-   - [ ] 安装指引/FAQ 文档与示例验证步骤，确保预检通过
+   2.1 - [ ] 提供 Homebrew 安装 llvm/libclang 步骤与 libclang 路径配置（含离线说明）
+   2.2 - [ ] 提供离线 Python 包安装方案（wheel/requirements），锁定版本
+   2.3 - [ ] 安装指引/FAQ 文档与示例验证步骤，确保预检通过
 3. 验证
-   - [ ] 运行预检测试并通过
+   3.1 - [ ] 运行预检测试并通过
 
 ## Constraints
 - 完全离线可执行；依赖版本需固定。
