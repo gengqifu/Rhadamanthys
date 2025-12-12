@@ -1,7 +1,6 @@
 # Rhadamanthys
 一个用来检查新发布 iOS app 是否符合 App Store 上架标准的工具。
 
-- 工作流程规范：`rules/core-rules/workflow-agile-manual.mdc`
 - 发布说明：见 `RELEASE_NOTES.md`
 
 ## 使用说明
