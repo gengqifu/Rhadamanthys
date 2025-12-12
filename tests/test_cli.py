@@ -46,6 +46,10 @@ class CliTests(unittest.TestCase):
         # TODO: 模拟有更新、无更新、失败三种场景，断言开始/进度/完成或失败日志与退出码。
         pass
 
+    def test_update_rules_command(self):
+        """独立命令 update-rules/sync-rules 成功/失败/已最新的日志与退出码。"""
+        # TODO: 调用 CLI 子命令，分别模拟成功更新、无更新、失败三种场景，断言日志和退出码。
+        pass
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
