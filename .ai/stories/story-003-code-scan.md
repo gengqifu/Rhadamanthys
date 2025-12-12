@@ -17,7 +17,7 @@ Story Points: 5
 
 ## Tasks
 1. 测试任务
-   1.1 - [ ] 设计测试夹具：Swift/ObjC 样例覆盖 ATT 缺失+跟踪 SDK、外链/第三方支付、缺苹果登录、私有 API 反射、明文 HTTP、后台模式缺失
+   1.1 - [x] 设计测试夹具：Swift/ObjC 样例覆盖 ATT 缺失+跟踪 SDK、外链/第三方支付、缺苹果登录、私有 API 反射、明文 HTTP、后台模式缺失
    1.2 - [ ] 编写测试断言：命中规则ID、风险级、高置信/需复核、中文建议、证据行号
 2. 开发任务
    2.1 - [ ] 集成 libclang/SourceKitten 输出解析，遍历 Swift/ObjC（支持过滤）
