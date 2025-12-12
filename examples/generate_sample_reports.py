@@ -66,6 +66,10 @@ def main():
     parser = argparse.ArgumentParser(description="生成示例报告（Excel/JSON/CSV）")
     parser.add_argument("--outdir", default=os.path.join(ROOT, "examples", "output"), help="报告输出目录")
     parser.add_argument("--sample", default=os.path.join(ROOT, "examples", "sample_findings.json"), help="示例 findings 路径")
+    parser.add_argument(
+        "--rules-package",
+        help="可选本地规则包（zip/tar.gz）占位参数，当前不改变逻辑，供 future update-rules 示例使用。",
+    )
     args = parser.parse_args()
 
     findings = load_sample_findings(args.sample)
