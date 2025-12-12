@@ -36,6 +36,14 @@ class RuleUpdateFlowTests(unittest.TestCase):
         """
         self.fail("TODO: 实现离线/获取失败时的测试夹具与断言")
 
+    def test_cli_update_rules_command(self):
+        """
+        Given 调用 CLI update-rules
+        When 远端有更新/无更新/失败
+        Then 输出对应提示与退出码（0/0/3），失败时不修改本地规则。
+        """
+        self.fail("TODO: 补充 CLI 行为断言与假远端/缓存夹具")
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
