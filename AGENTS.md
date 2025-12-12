@@ -14,5 +14,5 @@
 - Keep formatting consistent with templates; reference related docs via relative links.
 - Update Change Logs on modifications and notify when documents are ready for review.
 - Create subfolders under `.ai/` as needed to organize documentation.
-- Follow the workflow in `rules/core-rules/workflow-agile-project.mdc`.
+- Follow the workflow in `rules/core-rules/workflow-agile-manual.mdc`.
 - Always respond to questions in Chinese.
