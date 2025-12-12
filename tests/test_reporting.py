@@ -7,6 +7,8 @@ Reporting tests（TDD 占位）。
 - JSON/CSV 输出正确
 """
 
+import csv
+import json
 import os
 import tempfile
 import unittest
@@ -154,8 +156,42 @@ class ReportingTests(unittest.TestCase):
 
     def test_json_csv_output(self):
         """验证 JSON/CSV 输出正确。"""
-        # TODO: 构造 Findings，生成 JSON/CSV，并校验内容。
-        pass
+        try:
+            from scanner.report.generator import generate_csv_report, generate_json_report
+        except ImportError:
+            self.skipTest("报告生成器未实现，暂跳过 JSON/CSV 验证。")
+            return
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            json_path = os.path.join(tmp_dir, "report.json")
+            csv_path = os.path.join(tmp_dir, "report.csv")
+
+            json_result = generate_json_report(self.findings, output_path=json_path)
+            csv_result = generate_csv_report(self.findings, output_path=csv_path)
+
+            self.assertTrue(os.path.exists(json_result), "JSON 报告应生成到指定路径。")
+            self.assertTrue(os.path.exists(csv_result), "CSV 报告应生成到指定路径。")
+
+            with open(json_result, "r") as jf:
+                data = json.load(jf)
+            self.assertIsInstance(data, list, "JSON 输出应为列表。")
+            rule_ids = [item.get("rule_id") for item in data]
+            self.assertEqual(rule_ids, self.expected_order, "JSON 输出排序应按风险降序、规则ID 升序。")
+            for item in data:
+                for header in self.expected_headers:
+                    self.assertIn(header, item, "JSON 缺少字段 %s。" % header)
+
+            with open(csv_result, "r") as cf:
+                reader = csv.DictReader(cf)
+                self.assertEqual(reader.fieldnames, self.expected_headers, "CSV 字段顺序不一致。")
+                rows = list(reader)
+            csv_rule_ids = [row["rule_id"] for row in rows]
+            self.assertEqual(csv_rule_ids, self.expected_order, "CSV 输出排序应按风险降序、规则ID 升序。")
+            # CSV 将数值转为字符串，做字符串对比
+            for row in rows:
+                source = next(f for f in self.findings if f["rule_id"] == row["rule_id"])
+                for header in self.expected_headers:
+                    self.assertEqual(str(row[header]), str(source[header]), "CSV 字段 %s 填充不正确。" % header)
 
 
 if __name__ == "__main__":  # pragma: no cover
