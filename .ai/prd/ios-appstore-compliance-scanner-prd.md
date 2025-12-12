@@ -1,75 +1,85 @@
-# iOS App Store 合规扫描器 PRD
+# 1. Title: iOS App Store 合规扫描器 PRD
 
-## 文档信息
-- 目标：扫描本地 iOS 客户端代码，按 App Store Review Guidelines 与 HIG 识别风险并生成中文报告（Excel）。
-- 范围：仅 iOS 客户端；Swift/Objective-C/SwiftPM/Podfile/Info.plist/Entitlements 等相关配置。
-- 版本基线：以苹果官方链接的当前版本为准（App Store Review Guidelines、HIG），需在规则库记录来源链接与发布日期。
+<version>1.0.0</version>
 
-## 背景
-新上架 iOS 应用需符合 App Store 审核规则和 HIG。希望用离线工具自动扫描本地代码，发现潜在违规点，给出中文改进建议，并导出 Excel。
+## Status: Draft
 
-## 目标与非目标
-- 目标：自动扫描可机检的风险，输出高置信问题与需人工复核项；生成 Excel 报告；提供清晰日志与错误提示。
-- 非目标：内容合法性深度审核（侵权/夸大宣传等）、UI 体验完整符合 HIG 的人工判断。
+## Intro
+一个离线运行的命令行工具，扫描本地 iOS 客户端代码与配置，依据 App Store Review Guidelines 与 HIG 识别潜在违规，生成中文报告（Excel 主输出，可选 JSON/CSV），为上线前合规自检提供自动化支持。
 
-## 规则基线
+## Goals
+- 识别可机检的审核/合规风险，输出高置信命中与需人工复核项。
+- 生成结构化中文报告，含风险等级、位置、证据与改进建议。
+- 提供可配置的日志与预检机制，保证可运行性与可诊断性。
+- 支持规则库扩展与版本化管理。
+
+## Features and Requirements
+- 功能：规则库（分组、版本、条款链接、高置信/人工复核标记）、plist/Entitlements 扫描、代码与依赖扫描、报告生成（Excel/可选 JSON/CSV）、CLI 与预检、日志与错误输出。
+- 非功能：离线运行，Python 2.7.18 兼容，macOS + Homebrew clang/libclang 支持；性能可控（目录/大小过滤），模块化可维护。
+- 体验：日志中文，默认 1s 频率，可降至 30ms（提示 I/O 开销）；输出证据包含文件/行/片段与中文理由/建议。
+- 集成/合规：规则来源记录官方条款链接与版本日期；风险配色高红/中黄/低绿，排序风险降序+规则ID 升序；覆盖统计 Sheet。
+
+## Epic List
+### Epic-1: 规则库与预检
+### Epic-2: 扫描器（配置/代码/依赖）
+### Epic-3: 报告与日志
+### Epic-4: 测试与示例
+
+## Epic 1: Story List
+- Story 1: 规则库与版本管理 — Status: Complete
+  - 规则 Schema（ID 分组、条款链接、风险级、高置信/人工复核、版本/变更）；YAML/JSON 加载与校验。
+
+## Epic 2: Story List
+- Story 2: Info.plist/Entitlements 扫描 — Status: Complete
+  - 权限文案、ATS/HTTP、后台模式、Sign in with Apple、URL Schemes、导出合规。
+- Story 3: 代码级合规扫描 — Status: Complete
+  - ATT/跟踪 SDK/IDFA、StoreKit/IAP、外链/第三方支付、第三方登录缺苹果登录、私有 API/反射、明文 HTTP、后台模式实现缺失；目录与大小过滤。
+- Story 4: 依赖扫描 — Status: Planned
+  - 解析 Podfile/Package.swift/SwiftPM，识别广告/支付/登录等 SDK。
+
+## Epic 3: Story List
+- Story 5: CLI、日志与预检 — Status: Complete
+  - CLI 参数解析；预检 Python/依赖/libclang/路径；日志频率可配；退出码约定。
+- Story 6: 报告生成 — Status: Complete
+  - Excel 主输出（红/黄/绿配色，风险降序+规则ID 升序，覆盖统计 Sheet）；可选 JSON/CSV；证据格式中文化。
+
+## Epic 4: Story List
+- Story 7: 测试与示例 — Status: Planned
+  - 示例项目与报告；关键用例覆盖（权限文案缺失、ATS 全关、无 ATT+跟踪 SDK、第三方登录缺苹果登录、外链/第三方支付、私有 API、明文 HTTP、后台模式滥用、规则库缺失）。
+
+## Technology Stack
+| Technology | Description |
+| ---------- | ----------- |
+| Python 2.7.18 | 主语言，需锁定 pandas/openpyxl 等兼容版本 |
+| libclang/llvm | Swift/ObjC 解析（clang.cindex），macOS 下通过 Homebrew 安装 |
+| argparse/logging | CLI 参数与日志 |
+| pandas + openpyxl | Excel 报告生成（需选 2.7 兼容版） |
+| JSON/YAML 解析 | 规则库存储与加载 |
+
+## Reference
 - App Store Review Guidelines（官方链接）
 - Human Interface Guidelines（官方链接）
-- 规则库需机读：规则ID、标题、来源条款链接、适用范围、检测思路、风险等级、建议模板、是否需人工复核。
+- 规则库需记录条款编号、来源链接、发布日期。
 
-## 功能需求
-1) 规则库
-   - YAML/JSON 存储，含版本/发布日期。
-   - 支持增量更新与规则分组（隐私、支付、登录、网络、私有 API、元数据等）。
-   - 规则ID命名与分组：如 PRIV-001、PAY-002、AUTH-003、NET-004、API-005、META-006；记录来源条款编号与官方链接；规则库版本号与变更记录字段。
-   - 高置信/需人工复核标记：在规则定义中显式标注，报告直接呈现。
-2) 扫描器
-   - Info.plist/Entitlements：权限文案、ATS、后台模式、Sign in with Apple、URL Schemes、导出合规标记。
-   - 代码：Swift/ObjC 静态扫描（libclang/SourceKitten 可选），检测 ATT/跟踪 SDK、IDFA 访问、StoreKit/IAP、外链支付/WebView 拦截、第三方支付 SDK、第三方登录 vs Apple 登录、私有 API/反射黑名单、明文 HTTP/ATS 例外、后台模式对应实现。
-   - 依赖：Podfile/Package.swift/SwiftPM，识别 SDK 类型（广告/支付/登录等）。
-   - 人工复核提示：UGC 审核流程、订阅条款展示、截图/描述合规等不可完全自动化项标记“需人工复核”。
-   - 范围控制：默认忽略 build/DerivedData/Pods/.git/node_modules 等目录；可配置白名单/黑名单；限制最大文件大小（如默认 2MB）以避开二进制。
-   - 覆盖说明：列出“自动高置信”与“需人工复核”清单（隐私/支付/登录/网络/私有 API/元数据等），对齐规则库标记。
-3) CLI
-   - 命令：`python cli.py scan <project_path> --out report.xlsx [--rules group1,group2] [--verbose] [--debug]`
-   - 离线运行；允许依赖 Homebrew 安装 clang/libclang、Python 包。
-   - 关键日志输出到终端，长耗时任务需持续打印进度；日志间隔可配置（默认 1s，可用 `--log-interval-ms` 调低至 30ms，并提示可能的 I/O 开销）；按模块/目录输出阶段性汇总。
-   - `--verbose` 输出详细扫描进度与规则命中摘要；`--debug` 输出调试信息、堆栈与原始命中证据；支持配置输出格式（默认 Excel，可选 JSON/CSV）。
-   - 预检：启动前检查 Python 版本、依赖包、libclang 动态库与输入路径；失败给出明确退出码与中文错误提示。
-4) 报告
-   - Excel 字段：规则ID、风险等级、文件/行、证据、建议、是否需人工复核。
-   - 额外 Sheet：规则覆盖统计（命中数/未命中/未适用），方便复盘。
-   - 可选输出 JSON/CSV，默认不生成，通过参数开启。
-   - 风险等级定义：依据苹果官方条款严重性；Excel 配色：高风险背景红色，中风险背景黄色，低风险背景绿色。
-   - 排序与过滤：默认按风险等级降序、规则ID 升序；保留筛选/条件格式。
-   - 证据格式：文件路径 + 行号 + 命中片段，中文命中理由，中文改进建议。
-5) 错误与提示
-   - 明确错误信息（缺少依赖、解析失败、文件缺失）。
-   - 日志默认中文；建议也需中文。
-   - 退出码约定：0 成功；1 参数/路径错误；2 依赖缺失；3 扫描中断/异常。
+## Data Models, API Specs, Schemas, etc...
+- Rule：`id`、`group`（PRIV/PAY/AUTH/NET/API/META）、`title`、`source_link`、`section`、`severity`、`confidence`（high/manual）、`suggestion_template`、`version`、`changelog`。
+- Finding：`rule_id`、`severity`、`file`、`line`、`evidence`、`reason`、`suggestion`、`needs_review`、`group`。
+- Report：`findings`、`coverage_stats`、`formats`（excel/json/csv）。
 
-## 非功能需求
-- 性能：支持中型 iOS 项目；长任务需持续进度日志，日志频率可配置（默认 1s，调试可提升）；默认忽略大文件/编译产物目录。
-- 兼容性：macOS，支持 Homebrew 安装依赖；离线模式下不访问网络；Python 2.7.18（需注意依赖兼容性，给出推荐依赖清单与离线安装方式）；libclang 路径可配置。
-- 可维护性：规则库可扩展；扫描器模块化（plist/代码/依赖/网络/支付/登录等分层）。
-
-## 检测覆盖说明
-- 自动高置信：权限文案缺失/空；ATS 全关或例外过多；无 ATT 但存在跟踪/广告 SDK；第三方登录缺少苹果登录；外链支付/第三方支付 SDK；明文 HTTP；后台模式滥用；私有 API 黑名单命中。
-- 需人工复核：UGC 审核流程充分性；订阅条款展示；描述/截图是否夸大或侵权；设计/HIG 交互细节；其他无法静态确认的合规项。
-
-## 测试与验证
-- 提供示例项目与示例报告，用于验证安装与运行。
-- 关键用例：缺失权限文案、ATS 全关、无 ATT + 跟踪 SDK、第三方登录缺少苹果登录、外链支付/第三方支付 SDK、私有 API 命中、明文 HTTP、后台模式滥用、规则库缺失/加载错误。
-- 预检失败与运行时错误需有明确退出码与中文错误信息。
-
-## 开放问题
-- Excel 是否需要更多交互功能（如自定义过滤器、风险/模块分组视图）？
-- 是否需要更多输出格式或集成（如 HTML 报告、REST 接口）？
-
-## 里程碑（建议）
-1) 搭建规则模型与示例规则，完成 Info.plist 扫描与 Excel 输出骨架。
-2) 增加隐私/ATT/支付/登录/网络/私有 API 扫描器，支持风险分级与人工复核标记。
-3) 完善日志/错误处理、CLI 参数、进度输出（含日志频率配置）、规则覆盖统计与可选 JSON/CSV 导出。
+## Project Structure
+```text
+.ai/
+  prd/                       # PRD
+  stories/                   # 用户故事
+  architecture/              # 架构文档
+scanner/
+  rules/                     # 机读规则库（YAML/JSON）
+  scanners/                  # 模块化扫描器（plist/code/deps等）
+  cli.py                     # CLI 入口
+  report/                    # 报告生成器
+```
 
 ## Change Log
-- 2024-xx-xx 初稿
+| Change        | Story ID | Description          |
+| ------------- | -------- | -------------------- |
+| 初稿          | N/A      | 生成 iOS 合规扫描器 PRD |
