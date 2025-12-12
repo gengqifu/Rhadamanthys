@@ -13,6 +13,12 @@
 - 规则库更新（占位命令）：`python scanner/cli.py --command update-rules <project_path>`
 - 示例报告：`python examples/generate_sample_reports.py --outdir examples/output`
 
+## 技术原理
+- 离线 CLI：Python 2.7 运行，无需联网；预检 Python/依赖/libclang/路径。
+- 规则扫描：Plist/Entitlements（权限文案、ATS/HTTP、后台模式、URL Schemes、导出合规），代码正则/标记扫描（跟踪 SDK/IDFA、第三方支付/登录、私有 API、明文 HTTP、后台模式实现），元数据/资源（HTTP/支付域、敏感描述、占位符截图）。
+- 报告生成：Excel/JSON/CSV，风险降序+规则 ID 升序，高/中/低配色，证据含路径/行/片段与中文建议，覆盖统计。
+- 架构参考：详见 `.ai/architecture/ios-appstore-compliance-arch.md`。
+
 ## 安装（含离线说明）
 - 依赖：Python 2.7.18；pandas/openpyxl（2.6.4 等兼容版本）；llvm/libclang。
 - macOS + Homebrew 在线安装：
