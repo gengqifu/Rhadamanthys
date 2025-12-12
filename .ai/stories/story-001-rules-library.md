@@ -23,7 +23,7 @@ Story Points: 3
 2. 开发任务
    2.1 - [x] 定义规则 Schema（ID、group、title、source_link、section、severity、confidence、suggestion_template、version、changelog）
    2.2 - [x] 实现规则加载与字段校验（YAML/JSON）
-   2.3 - [ ] 提供示例规则集
+   2.3 - [x] 提供示例规则集
    2.4 - [ ] 实现官方规则版本检查与本地规则库更新机制（含版本对应关系存储）
 3. 验证
    3.1 - [ ] 运行新增测试，确认更新流程通过后标记完成

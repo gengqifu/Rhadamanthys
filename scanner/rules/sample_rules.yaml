@@ -1,0 +1,32 @@
+- id: PRIV-001
+  group: PRIV
+  title: 权限文案缺失或为空
+  source_link: https://developer.apple.com/app-store/review/guidelines/#privacy
+  section: 5.1.1
+  severity: high
+  confidence: high
+  suggestion_template: 请在 Info.plist 中为相关权限添加清晰的用途说明，避免占位或空字符串。
+  version: 1.0.0
+  changelog: 初始版本
+
+- id: PAY-002
+  group: PAY
+  title: 外链或第三方支付
+  source_link: https://developer.apple.com/app-store/review/guidelines/#payments
+  section: 3.1.1
+  severity: high
+  confidence: manual
+  suggestion_template: 数字内容/服务需使用 IAP，移除外链支付或改为 IAP；如为实物/线下服务需明确说明。
+  version: 1.0.0
+  changelog: 初始版本
+
+- id: AUTH-003
+  group: AUTH
+  title: 缺少 Sign in with Apple
+  source_link: https://developer.apple.com/app-store/review/guidelines/#sign_in_with_apple
+  section: 4.8
+  severity: medium
+  confidence: manual
+  suggestion_template: 如使用第三方登录（微信/QQ/FB/Google 等），需在同等位置提供 Sign in with Apple。
+  version: 1.0.0
+  changelog: 初始版本
