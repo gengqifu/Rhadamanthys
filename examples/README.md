@@ -10,7 +10,7 @@
 ## 运行
 在仓库根目录执行：
 ```bash
-python examples/generate_sample_reports.py --outdir examples/output
+python3 examples/generate_sample_reports.py --outdir examples/output
 ```
 
 输出文件：

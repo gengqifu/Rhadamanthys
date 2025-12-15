@@ -17,7 +17,8 @@ class PlistScanTests(unittest.TestCase):
         self.plist_path = os.path.join(self.tmpdir, "Info.plist")
 
     def _run_scan(self, data):
-        plistlib.writePlist(data, self.plist_path)
+        with open(self.plist_path, "wb") as f:
+            plistlib.dump(data, f)
         findings, _ = plist_scanner.scan(self.plist_path)
         return findings
 

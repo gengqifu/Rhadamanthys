@@ -32,7 +32,7 @@ class MetadataComplianceTests(unittest.TestCase):
         # 元数据描述/关键词包含敏感/夸大
         self.meta_file = os.path.join(self.tmpdir, "metadata.txt")
         with open(self.meta_file, "w") as f:
-            f.write(u"描述: 无限返现福利，轻松赌博赚钱\n关键词: 返现, 赌博\n".encode("utf-8"))
+            f.write(u"描述: 无限返现福利，轻松赌博赚钱\n关键词: 返现, 赌博\n")
         # 截图占位符
         self.screenshot_file = os.path.join(self.tmpdir, "screenshots", "screenshot_placeholder.png")
         os.makedirs(os.path.dirname(self.screenshot_file))

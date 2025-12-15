@@ -15,7 +15,7 @@ def load_plist(path):
     if not os.path.exists(path):
         raise IOError("plist not found: %s" % path)
     with open(path, "rb") as f:
-        return plistlib.readPlist(f)
+        return plistlib.load(f)
 
 
 def load_entitlements(path):
@@ -118,7 +118,7 @@ def scan(plist_path, entitlements_path=None):
         for item in url_types:
             schemes = item.get("CFBundleURLSchemes", []) if isinstance(item, dict) else []
             for s in schemes:
-                if isinstance(s, basestring) and any(tp in s.lower() for tp in third_party_schemes):
+                if isinstance(s, str) and any(tp in s.lower() for tp in third_party_schemes):
                     has_third_party = True
                     break
     if has_third_party:

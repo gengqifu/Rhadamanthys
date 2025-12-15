@@ -2,11 +2,18 @@
 """
 CLI 参数解析与预检占位。
 
-兼容 Python 2.7。
+面向 Python 3。
 """
-import argparse
 import os
 import sys
+
+# 确保包路径可用（支持直接 python scanner/cli.py 调用）
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(CURRENT_DIR)
+if PARENT_DIR not in sys.path:
+    sys.path.insert(0, PARENT_DIR)
+
+import argparse
 
 from scanner.logging_utils import configure_logging
 from scanner.rules_loader import check_and_update_rules
@@ -50,12 +57,19 @@ def preflight_check_dependencies(deps):
     return {"ok": True, "exit_code": 0, "error_msg": ""}
 
 
-def preflight_check_python(required=(2, 7)):
+def preflight_check_python(required=(3, 8)):
     """
     校验 Python 主次版本。
     """
-    if sys.version_info[:2] != required:
-        return {"ok": False, "exit_code": 2, "error_msg": "Python 版本不支持: %s" % ".".join(map(str, sys.version_info[:3]))}
+    required_major, required_minor = required[:2]
+    current_major, current_minor, current_patch = sys.version_info[:3]
+    if (current_major, current_minor) < (required_major, required_minor):
+        return {
+            "ok": False,
+            "exit_code": 2,
+            "error_msg": "Python 版本不支持: %s，需 >= %s.%s"
+            % (".".join(map(str, sys.version_info[:3])), required_major, required_minor),
+        }
     return {"ok": True, "exit_code": 0, "error_msg": ""}
 
 

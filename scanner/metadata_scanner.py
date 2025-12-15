@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 """
 元数据与资源合规扫描（HTTP 链接/支付域/敏感描述/截图占位符）。
 
-兼容 Python 2.7+，以简单文本/文件名规则识别低置信风险，默认标记需人工复核。
+面向 Python 3，以简单文本/文件名规则识别低置信风险，默认标记需人工复核。
 """
 import io
 import os

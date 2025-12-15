@@ -2,15 +2,31 @@
 """
 Rule schema definition and validation.
 
-Intended for use with Python 2.7.
+Intended for use with Python 3.
 """
 
+import io
 import re
 import json
 import os
 import hashlib
 
 from scanner import rules_sync
+import scanner.rules_sync
+
+
+def _to_text(value):
+    if isinstance(value, str):
+        return value
+    if isinstance(value, bytes):
+        try:
+            return value.decode("utf-8")
+        except Exception:
+            return value.decode("utf-8", "ignore")
+    try:
+        return str(value)
+    except Exception:  # pragma: no cover
+        return u""  # best effort
 
 REQUIRED_FIELDS = (
     "id",
@@ -83,7 +99,7 @@ def validate_rules(rules):
 def _load_version(path):
     if not os.path.exists(path):
         return None
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:  # type: ignore
         try:
             data = json.load(f)
             return data.get("version")
@@ -93,8 +109,8 @@ def _load_version(path):
 
 def _save_version(path, version):
     data = {"version": version}
-    with open(path, "w") as f:
-        json.dump(data, f)
+    with open(path, "w", encoding="utf-8") as f:  # type: ignore
+        json.dump(data, f, ensure_ascii=False)
 
 
 def _load_yaml(path):
@@ -125,17 +141,31 @@ def check_and_update_rules(
     """
     print("[规则库] 开始检查更新")
     local_version_data = rules_sync.load_version_file(version_path)
-    local_version = local_version_data.get("current_version") or "0.0.0"
+    local_version = (
+        local_version_data.get("current_version")
+        or local_version_data.get("version")
+        or "0.0.0"
+    )
 
     if fetch_official_rules is None:
-        # 无网络或未提供获取逻辑时，直接加载本地规则
-        print("[规则库] 未提供官方规则获取方式，跳过更新，使用本地版本 %s" % local_version)
-        return load_local_rules(local_rules_path)
+        # 默认使用苹果审核指南页面作为版本源，规则内容暂用本地加载作为占位
+        def _default_fetch():
+            cache_dir = os.path.join(os.path.dirname(local_rules_path), "cache")
+            try:
+                return rules_sync.fetch_official_rules(
+                    source_link=rules_sync.DEFAULT_SOURCE_LINK,
+                    cache_dir=cache_dir,
+                    local_rules_loader=lambda: load_local_rules(local_rules_path),
+                )
+            except Exception as exc:
+                raise RuntimeError(_to_text("获取官方规则失败：%s" % _to_text(exc)))
+
+        fetch_official_rules = _default_fetch
 
     try:
         fetched = fetch_official_rules()
     except Exception as exc:
-        raise RuntimeError("获取官方规则失败：%s" % exc)
+        raise RuntimeError(_to_text("获取官方规则失败：%s" % _to_text(exc)))
 
     # 支持 (version, rules) 或 dict
     if isinstance(fetched, tuple) and len(fetched) >= 2:
@@ -160,10 +190,12 @@ def check_and_update_rules(
     # 验证并写入新规则
     validate_rules(remote_rules)
     try:
-        with open(local_rules_path, "w") as f:
-            import yaml  # noqa
+        import yaml  # noqa
 
+        with io.open(local_rules_path, "w", encoding="utf-8") as f:
             yaml.safe_dump(remote_rules, f, default_flow_style=False, allow_unicode=True)
+    except ImportError:
+        raise RuntimeError("需要安装 PyYAML 以加载/写入规则文件")
     except Exception as exc:
         raise RuntimeError("写入本地规则失败：%s" % exc)
 
@@ -181,6 +213,7 @@ def check_and_update_rules(
     version_data.update(
         {
             "current_version": remote_version,
+            "version": remote_version,
             "released_at": remote_meta.get("released_at"),
             "source_link": remote_meta.get("source_link"),
             "changelog": remote_meta.get("changelog"),

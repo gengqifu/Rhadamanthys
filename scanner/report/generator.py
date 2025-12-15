@@ -2,13 +2,12 @@
 """
 报告生成器：Excel/JSON/CSV。
 
-兼容 Python 2.7+，聚焦排序（风险降序+规则 ID 升序）、字段完整性、配色与覆盖统计。
+聚焦排序（风险降序+规则 ID 升序）、字段完整性、配色与覆盖统计，面向 Python 3。
 """
 import csv
 import io
 import json
 import os
-import sys
 
 try:
     import openpyxl
@@ -26,17 +25,11 @@ SEVERITY_COLORS = {
 
 HEADERS = ["rule_id", "group", "severity", "needs_review", "file", "line", "evidence", "reason", "suggestion"]
 
-try:  # Python 2/3 兼容
-    unicode  # type: ignore
-except NameError:  # pragma: no cover
-    unicode = str  # type: ignore
-
-
 def _to_text(value):
-    """确保输出为 unicode（兼容 Python 2/3）。"""
+    """确保输出为文本字符串。"""
     if value is None:
         return value
-    if isinstance(value, bytes):  # pragma: no cover - Python 2/兼容
+    if isinstance(value, bytes):
         try:
             return value.decode("utf-8")
         except Exception:
@@ -88,38 +81,19 @@ def generate_json_report(findings, output_path="report.json"):
     """生成 JSON 报告并返回路径。"""
     normalized_findings = _normalize_findings(findings)
     content = json.dumps(normalized_findings, ensure_ascii=False, indent=2)
-    if isinstance(content, bytes):  # Python 2 返回 str，需要解码
-        content = content.decode("utf-8")
     with io.open(output_path, "w", encoding="utf-8") as f:
         f.write(content)
     return output_path
 
 
-def _encode_row_for_csv(row):
-    """在 Python 2 下将 unicode 转成 utf-8。"""
-    if sys.version_info[0] >= 3:
-        return row
-    encoded = {}
-    for k, v in row.items():
-        if isinstance(v, unicode):
-            encoded[k] = v.encode("utf-8")
-        else:
-            encoded[k] = v
-    return encoded
-
-
 def generate_csv_report(findings, output_path="report.csv"):
     """生成 CSV 报告并返回路径。"""
     normalized_findings = _normalize_findings(findings)
-    if sys.version_info[0] >= 3:
-        f = io.open(output_path, "w", encoding="utf-8", newline="")
-    else:  # pragma: no cover - Python 2 兼容
-        f = io.open(output_path, "wb")
-    with f:
+    with io.open(output_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=HEADERS)
         writer.writeheader()
         for item in normalized_findings:
-            writer.writerow(_encode_row_for_csv({key: item.get(key) for key in HEADERS}))
+            writer.writerow({key: item.get(key) for key in HEADERS})
     return output_path
 
 

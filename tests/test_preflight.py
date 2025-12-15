@@ -4,7 +4,7 @@ Preflight tests（离线/依赖检查）。
 
 覆盖场景：
 - Python 版本不符
-- 依赖缺失（pandas/openpyxl）
+- 依赖缺失（示例使用 PyYAML/openpyxl）
 - libclang 未配置
 - 项目路径不存在/不可读
 
@@ -59,11 +59,11 @@ class PreflightTests(unittest.TestCase):
                 pass
 
     def test_missing_dependencies(self):
-        """缺少 pandas/openpyxl 时返回退出码 2 并提示包名。"""
+        """缺少依赖时返回退出码 2 并提示包名。"""
         preflight = self._require_preflight()
         if not hasattr(cli, "preflight_check_dependencies"):
             self.skipTest("依赖检查未实现。")
-        result = cli.preflight_check_dependencies(["pandas", "openpyxl"])
+        result = cli.preflight_check_dependencies(["yaml", "openpyxl"])
         if result.get("ok", True):
             self.skipTest("依赖检查未触发缺失，可能已安装依赖。")
         self._assert_exit(result, 2, "缺少依赖")

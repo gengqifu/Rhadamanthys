@@ -7,10 +7,7 @@ import json
 import os
 import hashlib
 
-try:  # Python2/3 兼容
-    from urllib import request as urllib_request  # type: ignore
-except ImportError:  # pragma: no cover
-    import urllib2 as urllib_request  # type: ignore
+from urllib import request as urllib_request  # type: ignore
 
 
 VERSION_FIELDS = ("current_version", "released_at", "source_link", "changelog", "checksum")
@@ -28,7 +25,7 @@ def load_version_file(path):
         return default_version_data()
     with open(path, "r") as f:
         try:
-                data = json.load(f)
+            data = json.load(f)
         except Exception:
             return default_version_data()
     # 补全缺失字段，保持向后兼容
@@ -70,8 +67,8 @@ def fetch_official_rules(source_link=DEFAULT_SOURCE_LINK, cache_dir=None, local_
     :param local_rules_loader: 可选回调，提供解析后的规则内容；未提供时返回 None
     :return: dict 包含 version、rules、source_link、released_at、changelog、checksum
     """
-    resp = urllib_request.urlopen(source_link)
-    content = resp.read()
+    with urllib_request.urlopen(source_link) as resp:
+        content = resp.read()
     checksum = hashlib.sha256(content).hexdigest()
     version = checksum[:8]
 
