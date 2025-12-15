@@ -4,13 +4,20 @@
 - 发布说明：见 `RELEASE_NOTES.md`
 
 ## 使用说明
-- 预检：`python3 scanner/cli.py <project_path>`（默认命令为 scan，会先执行预检；若路径或依赖缺失会输出中文错误与退出码）。
-- 扫描并生成报告（Excel 默认）：`python3 scanner/cli.py <project_path> --out report.xlsx --format excel`
-  - 可选：`--format json` 或 `--format csv`
-  - 可选：`--include src/ app/`、`--exclude Pods/ build/`
-  - 日志频率：`--log-interval-ms 1000`，可加 `--verbose`/`--debug`
-- 规则库更新：`python3 scanner/cli.py --command update-rules <project_path>`（默认以苹果审核指南页面为来源，内容哈希作为版本；成功/无更新退出码 0，失败 3，失败时保留本地规则并提示。离线包自动更新待实现，可手动替换 `scanner/rules/` 与 `version.json`）
+- 预检+扫描并生成报告（Excel 默认）：`python3 scanner/cli.py <project_path> --out report.xlsx --format excel`
+- 更新规则库：`python3 scanner/cli.py --command update-rules <project_path>`
 - 示例报告：`python3 examples/generate_sample_reports.py --outdir examples/output`
+
+### 命令参数（scanner/cli.py）
+- `project_path`：必填，待扫描项目根目录。
+- `--command`：`scan`（默认）或 `update-rules`。
+- `--out`：报告输出路径，默认 `report.xlsx`。
+- `--format`：报告格式，`excel`（默认）/`json`/`csv`。
+- `--include`：仅扫描指定相对路径（可多值，如 `--include src app`）。
+- `--exclude`：跳过指定相对路径（可多值，如 `--exclude Pods build`）。
+- `--log-interval-ms`：日志间隔提示配置，默认 1000（当前仅提示用途）。
+- `--verbose`：输出详细 INFO 级别日志（默认已是 INFO，可用来显式声明）。
+- `--debug`：输出 DEBUG 级别日志。
 
 ## 技术原理
 工具通过 CLI 预检 → 加载规则 → 扫描各模块 → 汇总 Findings → 生成报告：
