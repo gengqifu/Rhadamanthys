@@ -19,7 +19,8 @@ import time
 
 from scanner.logging_utils import configure_logging
 from scanner.rules_loader import check_and_update_rules
-from scanner import code_scanner, plist_scanner, metadata_scanner, report
+from scanner import code_scanner, plist_scanner, metadata_scanner
+from scanner.report import generator as report_generator
 
 
 def parse_args(argv=None):
@@ -116,18 +117,21 @@ def main(argv=None):
     # 扫描入口
     start_ts = time.time()
     logging.info("[扫描] 预检通过，开始加载规则与执行扫描")
-    # 占位：示例扫描流程；实际扫描器可扩展
     findings = []
 
-    logging.info("[Plist] 开始扫描 plist/entitlements")
-    plist_path = os.path.join(args.project_path, "Info.plist")
-    entitlements_path = None
-    try:
-        plist_findings, _ = plist_scanner.scan(plist_path, entitlements_path)
-        findings.extend(plist_findings)
-    except Exception as exc:  # pragma: no cover - 占位
-        logging.warning("[Plist] 扫描失败: %s", exc)
-    logging.info("[Plist] 扫描完成，命中 %d 条", len(findings))
+    # Plist 扫描：自动遍历查找 Info.plist
+    plist_paths = plist_scanner.find_info_plists(args.project_path)
+    if not plist_paths:
+        logging.warning("[Plist] 未找到 Info.plist，跳过 Plist 扫描")
+    else:
+        logging.info("[Plist] 找到 %d 个 Info.plist，开始扫描", len(plist_paths))
+        for idx, plist_path in enumerate(plist_paths, 1):
+            try:
+                plist_findings, _ = plist_scanner.scan(plist_path)
+                findings.extend(plist_findings)
+                logging.info("[Plist] (%d/%d) %s 命中 %d 条（累计 %d 条）", idx, len(plist_paths), plist_path, len(plist_findings), len(findings))
+            except Exception as exc:  # pragma: no cover - 占位
+                logging.warning("[Plist] (%d/%d) 扫描失败 %s: %s", idx, len(plist_paths), plist_path, exc)
 
     logging.info("[Code] 开始扫描代码")
     try:
@@ -147,7 +151,28 @@ def main(argv=None):
 
     elapsed = time.time() - start_ts
     logging.info("[扫描] 全部完成，累计 %d 条，耗时 %.2fs", len(findings), elapsed)
-    print("预检通过，扫描完成（占位输出）。建议选择输出格式与路径生成报告。")
+
+    # 报告生成
+    fmt = (args.format or "excel").lower()
+    out_path = args.out
+    try:
+        if fmt == "excel":
+            report_generator.generate_excel_report(findings, output_path=out_path)
+        elif fmt == "json":
+            report_generator.generate_json_report(findings, output_path=out_path)
+        elif fmt == "csv":
+            report_generator.generate_csv_report(findings, output_path=out_path)
+        else:
+            logging.warning("[报告] 未知格式 %s，跳过生成", fmt)
+            out_path = None
+    except Exception as exc:
+        logging.error("[报告] 生成失败: %s", exc)
+        out_path = None
+
+    if out_path:
+        print("扫描完成，报告已生成: %s" % out_path)
+    else:
+        print("扫描完成，但未生成报告（请检查格式或依赖）。")
 
 
 if __name__ == "__main__":

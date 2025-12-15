@@ -24,6 +24,16 @@ def load_entitlements(path):
     return load_plist(path)
 
 
+def find_info_plists(root_path):
+    """遍历项目查找 Info.plist，返回路径列表（相对/绝对均可传入）。"""
+    matches = []
+    for dirpath, _, filenames in os.walk(root_path):
+        for name in filenames:
+            if name == "Info.plist":
+                matches.append(os.path.join(dirpath, name))
+    return matches
+
+
 def scan(plist_path, entitlements_path=None):
     """
     Placeholder scan function.
