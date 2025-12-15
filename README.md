@@ -19,6 +19,13 @@
 - `--verbose`：输出详细 INFO 级别日志（默认已是 INFO，可用来显式声明）。
 - `--debug`：输出 DEBUG 级别日志。
 
+### 报告解读
+- 输出格式：Excel/JSON/CSV。Excel 包含两个 Sheet：`Findings`（明细）和 `Coverage`（覆盖统计）。
+- 明细字段：`rule_id`、`rule_title`、`section`（对应审核条款章节）、`group`、`severity`（高红/中黄/低绿）、`needs_review`（是否需人工复核）、`file`、`line`、`evidence`（含路径/行/片段）、`reason`、`suggestion`。
+- 风险排序：按 `severity` 高→中→低，同行按 `rule_id` 升序。
+- 覆盖统计：按 `group` 聚合高/中/低/需复核/总计，底部 `合计` 汇总全局。
+- 若规则库可匹配到 `rule_id`，报告会自动补充 `rule_title` 与 `section`；未匹配时 section 可能为 `-`。
+
 ## 技术原理
 工具通过 CLI 预检 → 加载规则 → 扫描各模块 → 汇总 Findings → 生成报告：
 - 预检：验证 Python/依赖/libclang 及项目路径可用性，失败返回中文错误与退出码。
