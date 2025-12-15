@@ -45,8 +45,9 @@ ALLOWED_GROUPS = ("PRIV", "PAY", "AUTH", "NET", "API", "META")
 ALLOWED_SEVERITY = ("high", "medium", "low")
 ALLOWED_CONFIDENCE = ("high", "manual")
 RULE_ID_PATTERN = re.compile(r"^[A-Z]+-\d{3}$")
-VERSION_FILE_DEFAULT = os.path.join(os.path.dirname(__file__), "version.json")
-RULES_FILE_DEFAULT = os.path.join(os.path.dirname(__file__), "sample_rules.yaml")
+RULES_DIR = os.path.join(os.path.dirname(__file__), "rules")
+VERSION_FILE_DEFAULT = os.path.join(RULES_DIR, "version.json")
+RULES_FILE_DEFAULT = os.path.join(RULES_DIR, "sample_rules.yaml")
 
 
 def _ensure_dict_list(rules):
@@ -152,6 +153,7 @@ def check_and_update_rules(
         def _default_fetch():
             cache_dir = os.path.join(os.path.dirname(local_rules_path), "cache")
             try:
+                print("[规则库] 正在获取官方规则/版本信息: %s" % rules_sync.DEFAULT_SOURCE_LINK)
                 return rules_sync.fetch_official_rules(
                     source_link=rules_sync.DEFAULT_SOURCE_LINK,
                     cache_dir=cache_dir,
@@ -164,19 +166,23 @@ def check_and_update_rules(
 
     try:
         fetched = fetch_official_rules()
+        print("[规则库] 已获取官方规则元数据")
     except Exception as exc:
         raise RuntimeError(_to_text("获取官方规则失败：%s" % _to_text(exc)))
 
     # 支持 (version, rules) 或 dict
     if isinstance(fetched, tuple) and len(fetched) >= 2:
         remote_version, remote_rules = fetched[0], fetched[1]
-        remote_meta = {}
+        remote_meta = {"parsed_ok": True}
     elif isinstance(fetched, dict):
         remote_version = fetched.get("version") or fetched.get("current_version")
         remote_rules = fetched.get("rules")
         remote_meta = fetched
     else:
         raise RuntimeError("官方规则返回格式不正确")
+
+    if remote_meta.get("parsed_ok") is False:
+        raise RuntimeError("解析官方规则失败，未更新本地规则")
 
     if remote_version is None or remote_rules is None:
         raise RuntimeError("官方规则缺少版本或规则内容")
@@ -188,7 +194,9 @@ def check_and_update_rules(
 
     print("[规则库] 发现新版本 %s -> %s，开始更新" % (local_version, remote_version))
     # 验证并写入新规则
+    print("[规则库] 正在校验新规则...")
     validate_rules(remote_rules)
+    print("[规则库] 校验通过，写入规则文件: %s" % local_rules_path)
     try:
         import yaml  # noqa
 
@@ -220,6 +228,7 @@ def check_and_update_rules(
             "checksum": checksum,
         }
     )
+    print("[规则库] 写入版本文件: %s" % version_path)
     rules_sync.write_version_file(version_path, version_data)
     print("[规则库] 更新完成，当前版本 %s" % remote_version)
     return remote_rules

@@ -208,3 +208,5 @@ __marimo__/
 
 # Examples output
 examples/output/
+scanner/cache/
+scanner/rules/cache/
