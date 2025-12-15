@@ -18,7 +18,7 @@ import logging
 import time
 
 from scanner.logging_utils import configure_logging
-from scanner.rules_loader import check_and_update_rules
+from scanner.rules_loader import check_and_update_rules, load_local_rules
 from scanner import code_scanner, plist_scanner, metadata_scanner
 from scanner.report import generator as report_generator
 
@@ -96,12 +96,17 @@ def main(argv=None):
         sys.exit(result["exit_code"])
 
     # 启动时规则版本比对：失败不阻塞扫描（仅提示），update-rules 命令单独处理。
+    rules_data = None
     if args.command == "scan":
         try:
             logging.info("[规则库] 检查规则版本/同步（启动阶段）")
-            check_and_update_rules()
+            rules_data = check_and_update_rules()
         except Exception as exc:  # pragma: no cover - 待真实实现
             sys.stderr.write("[规则库] 更新检查失败（将继续使用本地规则）：%s\n" % exc)
+            try:
+                rules_data = load_local_rules()
+            except Exception:
+                rules_data = None
 
     if args.command == "update-rules" or args.command == "sync-rules":
         print("[规则库] 开始同步...")
@@ -151,6 +156,42 @@ def main(argv=None):
 
     elapsed = time.time() - start_ts
     logging.info("[扫描] 全部完成，累计 %d 条，耗时 %.2fs", len(findings), elapsed)
+
+    # 可选规则补充：为报告填充 rule_title/section
+    if rules_data:
+        rules_index = {r.get("id"): r for r in rules_data if isinstance(r, dict) and r.get("id")}
+        for f in findings:
+            if not f.get("rule_title") and f.get("rule_id") in rules_index:
+                f["rule_title"] = rules_index[f["rule_id"]].get("title")
+            if (not f.get("section")) and f.get("rule_id") in rules_index:
+                f["section"] = rules_index[f["rule_id"]].get("section")
+    # 内置规则映射兜底：对自有规则补充标题/章节
+    FALLBACK_RULES = {
+        "PRIV-001": {"title": "权限文案缺失或为空", "section": "5.1.1"},
+        "PRIV-ATT": {"title": "跟踪/广告标识符使用需合规", "section": "5.1"},
+        "PAY-002": {"title": "外链或第三方支付", "section": "3.1.1"},
+        "PAY-LINK": {"title": "疑似支付域名/链接", "section": "3.1.1"},
+        "AUTH-003": {"title": "缺少 Sign in with Apple", "section": "4.8"},
+        "NET-HTTP": {"title": "明文 HTTP 调用", "section": "2.5.1"},
+        "NET-001": {"title": "ATS 关闭或例外过多", "section": "2.5.1"},
+        "NET-META-HTTP": {"title": "元数据含明文 HTTP 链接", "section": "2.5.1"},
+        "API-PRIVATE": {"title": "疑似私有 API/反射调用", "section": "2.5"},
+        "API-BG": {"title": "后台模式实现风险", "section": "2.5"},
+        "API-001": {"title": "后台模式配置需核实", "section": "2.5"},
+        "META-001": {"title": "缺少导出合规标记", "section": "2.3"},
+        "META-DESC-SENSITIVE": {"title": "元数据敏感/夸大描述", "section": "2.3"},
+        "META-SCREENSHOT-PLACEHOLDER": {"title": "占位符截图", "section": "2.3"},
+    }
+    for f in findings:
+        rid = f.get("rule_id")
+        if not rid:
+            continue
+        fb = FALLBACK_RULES.get(rid)
+        if fb:
+            if not f.get("rule_title"):
+                f["rule_title"] = fb.get("title")
+            if not f.get("section") or f.get("section") == "-":
+                f["section"] = fb.get("section")
 
     # 报告生成
     fmt = (args.format or "excel").lower()

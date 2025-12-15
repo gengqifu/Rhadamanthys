@@ -44,6 +44,8 @@ class ReportingTests(unittest.TestCase):
         self.findings = [
             {
                 "rule_id": "PAY-002",
+                "rule_title": "外链或第三方支付",
+                "section": "3.1.1",
                 "group": "PAY",
                 "severity": "high",
                 "file": "app/pay.m",
@@ -55,6 +57,8 @@ class ReportingTests(unittest.TestCase):
             },
             {
                 "rule_id": "PRIV-001",
+                "rule_title": "权限文案缺失或为空",
+                "section": "5.1.1",
                 "group": "PRIV",
                 "severity": "high",
                 "file": "app/privacy.m",
@@ -66,6 +70,8 @@ class ReportingTests(unittest.TestCase):
             },
             {
                 "rule_id": "AUTH-003",
+                "rule_title": "缺少 Sign in with Apple",
+                "section": "4.8",
                 "group": "AUTH",
                 "severity": "medium",
                 "file": "app/login.swift",
@@ -77,6 +83,8 @@ class ReportingTests(unittest.TestCase):
             },
             {
                 "rule_id": "NET-HTTP",
+                "rule_title": "明文 HTTP",
+                "section": "2.5.1",
                 "group": "NET",
                 "severity": "low",
                 "file": "app/network.swift",
@@ -89,6 +97,8 @@ class ReportingTests(unittest.TestCase):
         ]
         self.expected_headers = [
             "rule_id",
+            "rule_title",
+            "section",
             "group",
             "severity",
             "needs_review",

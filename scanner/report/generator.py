@@ -24,7 +24,20 @@ SEVERITY_COLORS = {
     "low": "FFB2F2BB",     # 绿
 }
 
-HEADERS = ["rule_id", "group", "severity", "needs_review", "file", "line", "evidence", "reason", "suggestion"]
+# 增加 rule_title/section 以标注具体条款
+HEADERS = [
+    "rule_id",
+    "rule_title",
+    "section",
+    "group",
+    "severity",
+    "needs_review",
+    "file",
+    "line",
+    "evidence",
+    "reason",
+    "suggestion",
+]
 
 def _to_text(value):
     """确保输出为文本字符串。"""
@@ -67,13 +80,15 @@ def _normalize_findings(findings):
         item = {}
         for key in HEADERS:
             value = f.get(key)
-            if key in ("evidence", "reason", "suggestion", "rule_id", "group", "severity", "file"):
+            if key in ("evidence", "reason", "suggestion", "rule_id", "group", "severity", "file", "rule_title", "section"):
                 item[key] = _to_text(value)
             else:
                 item[key] = value
         item["evidence"] = format_evidence(f)
         item["reason"] = _to_text(f.get("reason") or "")
         item["suggestion"] = _to_text(f.get("suggestion") or "")
+        item["rule_title"] = _to_text(f.get("rule_title") or f.get("title") or f.get("reason") or f.get("rule_id"))
+        item["section"] = _to_text(f.get("section") or "-")
         normalized.append(item)
     return normalized
 
