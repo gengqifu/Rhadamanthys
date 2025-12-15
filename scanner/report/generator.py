@@ -8,6 +8,7 @@ import csv
 import io
 import json
 import os
+import re
 
 try:
     import openpyxl
@@ -77,6 +78,16 @@ def _normalize_findings(findings):
     return normalized
 
 
+_INVALID_EXCEL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
+def _sanitize_for_excel(value):
+    """移除 Excel 不支持的控制字符，避免 openpyxl 抛错。"""
+    if isinstance(value, str):
+        return _INVALID_EXCEL_CHARS.sub("", value)
+    return value
+
+
 def generate_json_report(findings, output_path="report.json"):
     """生成 JSON 报告并返回路径。"""
     normalized_findings = _normalize_findings(findings)
@@ -136,7 +147,7 @@ def generate_excel_report(findings, output_path="report.xlsx"):
     ws_findings.title = "Findings"
     ws_findings.append(HEADERS)
     for item in normalized_findings:
-        row_values = [item.get(key) for key in HEADERS]
+        row_values = [_sanitize_for_excel(item.get(key)) for key in HEADERS]
         ws_findings.append(row_values)
 
     # 配色：按 severity 列
