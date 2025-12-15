@@ -12,13 +12,10 @@ def configure_logging(log_interval_ms=1000, verbose=False, debug=False):
     - log_interval_ms: 日志间隔配置（目前仅用于提示，未实现节流）。
     - verbose/debug: 控制日志级别。
     """
+    # 默认 INFO，调试模式提升为 DEBUG，便于显示进度日志
     level = logging.INFO
     if debug:
         level = logging.DEBUG
-    elif verbose:
-        level = logging.INFO
-    else:
-        level = logging.WARNING
 
     logging.basicConfig(
         level=level,
