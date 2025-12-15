@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 """
 import io
 import os
+import logging
 
 HTTP_MARK = "http://"
 PAYMENT_HINTS = ("pay.", "alipay", "wechatpay", "paypal")
@@ -63,6 +64,7 @@ def scan(root_path, enable_http=True, enable_payment=True, enable_sensitive_text
             }
         )
 
+    total_files = 0
     for dirpath, _, filenames in os.walk(root_path):
         for name in filenames:
             file_path = os.path.join(dirpath, name)
@@ -94,6 +96,9 @@ def scan(root_path, enable_http=True, enable_payment=True, enable_sensitive_text
             lines = _read_lines(file_path)
             if not lines:
                 continue
+            total_files += 1
+            if total_files % 200 == 0:
+                logging.info("[Metadata] 已扫描 %d 个文件", total_files)
 
             for idx, line in enumerate(lines, 1):
                 lower_line = line.lower()
@@ -128,6 +133,7 @@ def scan(root_path, enable_http=True, enable_payment=True, enable_sensitive_text
                         "请移除敏感/夸大表述，保持合规描述。",
                     )
 
+    logging.info("[Metadata] 扫描完成，累计遍历文件 %d", total_files)
     return findings, metadata
 
 

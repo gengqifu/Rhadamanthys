@@ -14,9 +14,12 @@ if PARENT_DIR not in sys.path:
     sys.path.insert(0, PARENT_DIR)
 
 import argparse
+import logging
+import time
 
 from scanner.logging_utils import configure_logging
 from scanner.rules_loader import check_and_update_rules
+from scanner import code_scanner, plist_scanner, metadata_scanner, report
 
 
 def parse_args(argv=None):
@@ -94,6 +97,7 @@ def main(argv=None):
     # 启动时规则版本比对：失败不阻塞扫描（仅提示），update-rules 命令单独处理。
     if args.command == "scan":
         try:
+            logging.info("[规则库] 检查规则版本/同步（启动阶段）")
             check_and_update_rules()
         except Exception as exc:  # pragma: no cover - 待真实实现
             sys.stderr.write("[规则库] 更新检查失败（将继续使用本地规则）：%s\n" % exc)
@@ -109,7 +113,41 @@ def main(argv=None):
             sys.stderr.write("[规则库] 同步失败：%s\n" % exc)
             sys.exit(3)
 
-    print("预检通过，准备执行扫描（占位，待实现）")
+    # 扫描入口
+    start_ts = time.time()
+    logging.info("[扫描] 预检通过，开始加载规则与执行扫描")
+    # 占位：示例扫描流程；实际扫描器可扩展
+    findings = []
+
+    logging.info("[Plist] 开始扫描 plist/entitlements")
+    plist_path = os.path.join(args.project_path, "Info.plist")
+    entitlements_path = None
+    try:
+        plist_findings, _ = plist_scanner.scan(plist_path, entitlements_path)
+        findings.extend(plist_findings)
+    except Exception as exc:  # pragma: no cover - 占位
+        logging.warning("[Plist] 扫描失败: %s", exc)
+    logging.info("[Plist] 扫描完成，命中 %d 条", len(findings))
+
+    logging.info("[Code] 开始扫描代码")
+    try:
+        code_findings, _ = code_scanner.scan(args.project_path, include=args.include, exclude=args.exclude)
+        findings.extend(code_findings)
+        logging.info("[Code] 扫描完成，命中 %d 条（累计 %d 条）", len(code_findings), len(findings))
+    except Exception as exc:  # pragma: no cover - 占位
+        logging.warning("[Code] 扫描失败: %s", exc)
+
+    logging.info("[Metadata] 开始扫描元数据/资源")
+    try:
+        meta_findings, _ = metadata_scanner.scan(args.project_path)
+        findings.extend(meta_findings)
+        logging.info("[Metadata] 扫描完成，命中 %d 条（累计 %d 条）", len(meta_findings), len(findings))
+    except Exception as exc:  # pragma: no cover - 占位
+        logging.warning("[Metadata] 扫描失败: %s", exc)
+
+    elapsed = time.time() - start_ts
+    logging.info("[扫描] 全部完成，累计 %d 条，耗时 %.2fs", len(findings), elapsed)
+    print("预检通过，扫描完成（占位输出）。建议选择输出格式与路径生成报告。")
 
 
 if __name__ == "__main__":

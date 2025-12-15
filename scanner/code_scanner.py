@@ -7,6 +7,7 @@ Note: 基于简单文本扫描的占位实现，需后续替换为 AST/SDK 检�
 
 import io
 import os
+import logging
 
 TARGET_EXTS = (".swift", ".m", ".mm", ".h")
 
@@ -61,6 +62,7 @@ def scan(project_path, include=None, exclude=None):
             }
         )
 
+    total_files = 0
     for root, dirs, files in os.walk(project_path):
         rel_root = os.path.relpath(root, project_path)
         if _should_skip(rel_root, include, exclude):
@@ -75,6 +77,9 @@ def scan(project_path, include=None, exclude=None):
             content = _scan_file(file_path)
             if not content:
                 continue
+            total_files += 1
+            if total_files % 100 == 0:
+                logging.info("[Code] 已扫描 %d 个源文件", total_files)
             lowered = content.lower()
 
             # ATT / 跟踪
@@ -101,4 +106,5 @@ def scan(project_path, include=None, exclude=None):
             if any(marker in content for marker in BACKGROUND_MARKERS):
                 add_finding("API-BG", "low", rel_path, "检测到后台模式相关代码，请确保与 Info.plist 配置匹配", "确保后台声明与实现一致，符合审核要求。", needs_review=True)
 
+    logging.info("[Code] 扫描完成，累计遍历源文件 %d", total_files)
     return findings, metadata

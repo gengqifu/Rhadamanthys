@@ -8,6 +8,7 @@ Detection logic to be added separately.
 
 import os
 import plistlib
+import logging
 
 
 def load_plist(path):
@@ -28,6 +29,7 @@ def scan(plist_path, entitlements_path=None):
     Placeholder scan function.
     Returns (findings, metadata) where findings is a list of rule hits (currently empty).
     """
+    logging.info("[Plist] 读取 Info.plist: %s", plist_path)
     plist_data = load_plist(plist_path)
     entitlements_data = load_entitlements(entitlements_path) if entitlements_path else {}
 
