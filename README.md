@@ -3,6 +3,21 @@
 
 - 发布说明：见 `RELEASE_NOTES.md`
 
+## 快速开始
+1) 准备环境：Python 3.8+，可用 `python3 -V` 验证；安装 llvm/libclang（macOS 建议 `brew install llvm`，并设置 `export LIBCLANG_PATH=/opt/homebrew/opt/llvm/lib` 或对应前缀）。  
+2) 安装依赖（推荐虚拟环境）：
+```
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -U pip setuptools wheel
+python3 -m pip install PyYAML==6.0.1 openpyxl==3.1.2
+```
+3) 运行扫描并生成报告（Excel 默认）：
+```
+python3 scanner/cli.py <project_path> --out report.xlsx --format excel
+```
+退出码 0 表示生成成功；非 0 按终端中文错误提示补齐依赖/路径后重试。若想先查看报告格式，可运行 `python3 examples/generate_sample_reports.py --outdir examples/output` 生成示例。
+
 ## 使用说明
 - 预检+扫描并生成报告（Excel 默认）：`python3 scanner/cli.py <project_path> --out report.xlsx --format excel`
 - 更新规则库：`python3 scanner/cli.py --command update-rules <project_path>`
@@ -25,6 +40,23 @@
 - 风险排序：按 `severity` 高→中→低，同行按 `rule_id` 升序。
 - 覆盖统计：按 `group` 聚合高/中/低/需复核/总计，底部 `合计` 汇总全局。
 - 若规则库可匹配到 `rule_id`，报告会自动补充 `rule_title` 与 `section`；未匹配时 section 可能为 `-`。
+- 输出示例（JSON 片段，字段同 Excel）：  
+```json
+[
+  {
+    "rule_id": "NET-HTTP",
+    "rule_title": "明文 HTTP 调用",
+    "section": "2.5.1",
+    "severity": "high",
+    "needs_review": false,
+    "file": "App/Networking/Client.swift",
+    "line": 42,
+    "evidence": "http://example.com/api",
+    "reason": "检测到明文 HTTP 请求",
+    "suggestion": "改为 HTTPS 或配置 ATS 例外并说明理由"
+  }
+]
+```
 
 ## 技术原理
 工具通过 CLI 预检 → 加载规则 → 扫描各模块 → 汇总 Findings → 生成报告：
@@ -57,6 +89,16 @@
   - 拷贝 `pkgs/` 到离线机后执行 `python3 -m pip install --no-index --find-links pkgs PyYAML==6.0.1 openpyxl==3.1.2`
 - 离线安装 llvm/libclang（思路）：在有网机器上执行 `brew fetch llvm`，将缓存的 bottle 与 `Cellar/llvm` 拷贝到离线机相同前缀，再运行 `brew install --cache llvm` 或直接解压到 `/usr/local/opt/llvm`。确保 `libclang.dylib` 可由 `LIBCLANG_PATH` 指向。
 - 运行前可执行预检（实现于 `scanner/cli.py` 的 `preflight`）：缺失依赖或路径错误时输出中文错误与退出码。
+
+## 平台支持
+- 已验证：macOS（Apple Silicon/Intel，需安装 llvm/libclang）。
+- Linux：理论可行，需手动安装 llvm/libclang 并设置 `LIBCLANG_PATH`；未做充分验证。
+- Windows：未验证，建议在 WSL 或 CI Linux/macOS 环境运行。
+
+## 规则库与更新
+- 本地规则位于 `scanner/rules/`，版本文件 `scanner/rules/version.json`；启动扫描时会尝试比对/提示版本。
+- 运行 `python3 scanner/cli.py --command update-rules <project_path>` 可同步规则；失败会回退到本地规则并提示错误。
+- 离线更新思路：将外部获取的规则 YAML 与 `version.json` 覆盖到 `scanner/rules/`，再运行扫描；保持 `version` 字段可用于版本提示。
 
 ## FAQ（离线/安装常见问题）
 - 找不到 `libclang.dylib`：确认 Homebrew 路径（如 `/opt/homebrew/opt/llvm/lib`），或设置 `LIBCLANG_PATH` 指向实际的 `libclang.dylib` 目录。
